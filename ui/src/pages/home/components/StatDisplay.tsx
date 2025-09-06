@@ -1,4 +1,3 @@
-import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ReactNode } from "react";
 import { motion, useAnimation } from "framer-motion";
