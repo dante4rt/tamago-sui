@@ -47,6 +47,8 @@ import { useMutateStudy } from "@/hooks/useMutateStudy";
 import { useMutateRest } from "@/hooks/useMutateRest";
 
 import type { PetStruct } from "@/types/Pet";
+import { motion } from "framer-motion";
+import { scaleTap } from "@/components/motion/variants";
 
 type PetDashboardProps = {
   pet: PetStruct;
@@ -168,11 +170,19 @@ export default function PetComponent({ pet }: PetDashboardProps) {
         <CardContent className="space-y-4">
           {/* Pet Image */}
           <div className="flex justify-center">
-            <img
-              src={pet.image_url}
-              alt={pet.name}
-              className="w-36 h-36 rounded-full border-4 border-primary/20 object-cover"
-            />
+            <motion.div
+              animate={{ scale: [1, 1.02, 1] }}
+              transition={{ repeat: Infinity, repeatDelay: 3.5, duration: 2.2 }}
+              className="rounded-full"
+            >
+              <motion.img
+                src={pet.image_url}
+                alt={pet.name}
+                className="w-36 h-36 rounded-full border-4 border-primary/20 object-cover"
+                whileHover={{ rotate: [0, -2, 2, 0] }}
+                transition={{ duration: 0.6 }}
+              />
+            </motion.div>
           </div>
 
           {/* Game & Stats Data */}
@@ -225,18 +235,20 @@ export default function PetComponent({ pet }: PetDashboardProps) {
           </div>
 
           <div className="pt-2">
-            <Button
-              onClick={() => mutateLevelUp({ petId: pet.id })}
-              disabled={!canLevelUp || isAnyActionPending}
-              className="w-full bg-green-600 hover:bg-green-700"
-            >
-              {isLevelingUp ? (
-                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <ChevronUpIcon className="mr-2 h-4 w-4" />
-              )}
-              Level Up!
-            </Button>
+            <motion.div {...scaleTap}>
+              <Button
+                onClick={() => mutateLevelUp({ petId: pet.id })}
+                disabled={!canLevelUp || isAnyActionPending}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {isLevelingUp ? (
+                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <ChevronUpIcon className="mr-2 h-4 w-4" />
+                )}
+                Level Up!
+              </Button>
+            </motion.div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

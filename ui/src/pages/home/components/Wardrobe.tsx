@@ -12,6 +12,8 @@ import { useQueryEquippedAccessory } from "@/hooks/useQueryEquippedAccessory";
 import { useQueryOwnedAccessories } from "@/hooks/useQueryOwnedAccessories";
 
 import type { PetStruct } from "@/types/Pet";
+import { motion } from "framer-motion";
+import { scaleTap } from "@/components/motion/variants";
 
 type WardrobeManagerProps = {
   pet: PetStruct;
@@ -65,18 +67,20 @@ export function WardrobeManager({
                 Equipped: <strong>{equippedAccessory.name}</strong>
               </p>
             </div>
-            <Button
-              className="cursor-pointer"
-              onClick={() => mutateUnequip({ petId: pet.id })}
-              disabled={isAnyActionPending || isProcessingWardrobe}
-              variant="destructive"
-              size="sm"
-            >
-              {isUnequipping && (
-                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-              )}{" "}
-              Unequip
-            </Button>
+            <motion.div {...scaleTap}>
+              <Button
+                className="cursor-pointer"
+                onClick={() => mutateUnequip({ petId: pet.id })}
+                disabled={isAnyActionPending || isProcessingWardrobe}
+                variant="destructive"
+                size="sm"
+              >
+                {isUnequipping && (
+                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                )}{" "}
+                Unequip
+              </Button>
+            </motion.div>
           </div>
         )}
 
@@ -96,23 +100,25 @@ export function WardrobeManager({
                   />
                   <p className="text-sm font-medium">{acc.name}</p>
                 </div>
-                <Button
-                  className="cursor-pointer"
-                  onClick={() =>
-                    mutateEquip({
-                      petId: pet.id,
-                      accessoryId: acc.id.id,
-                      accessoryName: acc.name,
-                    })
-                  }
-                  disabled={isAnyActionPending || isProcessingWardrobe}
-                  size="sm"
-                >
-                  {isEquipping && (
-                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                  )}{" "}
-                  Equip
-                </Button>
+                <motion.div {...scaleTap}>
+                  <Button
+                    className="cursor-pointer"
+                    onClick={() =>
+                      mutateEquip({
+                        petId: pet.id,
+                        accessoryId: acc.id.id,
+                        accessoryName: acc.name,
+                      })
+                    }
+                    disabled={isAnyActionPending || isProcessingWardrobe}
+                    size="sm"
+                  >
+                    {isEquipping && (
+                      <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                    )}{" "}
+                    Equip
+                  </Button>
+                </motion.div>
               </div>
             ))}
           </div>
@@ -120,6 +126,7 @@ export function WardrobeManager({
 
         {/* Mint actions — always visible */}
         <div className="grid grid-cols-3 gap-2 w-full">
+          <motion.div {...scaleTap}>
           <Button
             onClick={() => mutateMint()}
             disabled={isAnyActionPending || isProcessingWardrobe}
@@ -133,6 +140,8 @@ export function WardrobeManager({
             )}{" "}
             Glasses
           </Button>
+          </motion.div>
+          <motion.div {...scaleTap}>
           <Button
             onClick={() => mutateMintHat()}
             disabled={isAnyActionPending || isProcessingWardrobe}
@@ -146,6 +155,8 @@ export function WardrobeManager({
             )}{" "}
             Hat
           </Button>
+          </motion.div>
+          <motion.div {...scaleTap}>
           <Button
             onClick={() => mutateMintToy()}
             disabled={isAnyActionPending || isProcessingWardrobe}
@@ -159,6 +170,7 @@ export function WardrobeManager({
             )}{" "}
             Toy
           </Button>
+          </motion.div>
         </div>
       </div>
     );

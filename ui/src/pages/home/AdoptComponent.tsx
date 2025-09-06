@@ -10,6 +10,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useMutateAdoptPet } from "@/hooks/useMutateAdoptPet";
 import { Loader2Icon } from "lucide-react";
+import { motion } from "framer-motion";
+import { fadeInUp, scaleTap } from "@/components/motion/variants";
 
 const INTIAAL_PET_IMAGE_URL =
   "https://raw.githubusercontent.com/xfajarr/stacklend/refs/heads/main/photo_2023-04-30_12-46-11.jpg";
@@ -24,6 +26,7 @@ export default function AdoptComponent() {
   };
 
   return (
+    <motion.div variants={fadeInUp} initial="hidden" animate="show" exit="exit">
     <Card className="w-full max-w-sm text-center shadow-hard border-2 border-primary">
       <CardHeader>
         <CardTitle className="text-3xl">ADOPT YOUR PET</CardTitle>
@@ -31,10 +34,12 @@ export default function AdoptComponent() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <img
+          <motion.img
             src={INTIAAL_PET_IMAGE_URL}
             alt="Your new pet"
             className="w-40 h-40 mx-auto image-rendering-pixelated bg-secondary p-2 border-2 border-primary"
+            whileHover={{ scale: 1.04 }}
+            transition={{ type: "spring", stiffness: 200, damping: 14 }}
           />
         </div>
 
@@ -50,22 +55,25 @@ export default function AdoptComponent() {
         </div>
 
         <div>
-          <Button
-            onClick={handleAdoptPet}
-            disabled={!petName.trim() || isAdopting}
-            className="w-full text-lg py-6 border-2 border-primary shadow-hard-sm hover:translate-x-0.5 hover:translate-y-0.5"
-          >
-            {isAdopting ? (
-              <>
-                <Loader2Icon className="mr-2 h-5 w-5 animate-spin" />{" "}
-                Adopting...
-              </>
-            ) : (
-              "ADOPT NOW"
-            )}
-          </Button>
+          <motion.div {...scaleTap}>
+            <Button
+              onClick={handleAdoptPet}
+              disabled={!petName.trim() || isAdopting}
+              className="w-full text-lg py-6 border-2 border-primary shadow-hard-sm hover:translate-x-0.5 hover:translate-y-0.5"
+            >
+              {isAdopting ? (
+                <>
+                  <Loader2Icon className="mr-2 h-5 w-5 animate-spin" />{" "}
+                  Adopting...
+                </>
+              ) : (
+                "ADOPT NOW"
+              )}
+            </Button>
+          </motion.div>
         </div>
       </CardContent>
     </Card>
+    </motion.div>
   );
 }

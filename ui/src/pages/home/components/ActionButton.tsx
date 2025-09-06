@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { Loader2Icon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { scaleTap } from "@/components/motion/variants";
 
 // Helper component for action buttons to avoid repetition
 type ActionButtonProps = {
@@ -20,17 +22,15 @@ export function ActionButton({
   icon,
 }: ActionButtonProps) {
   return (
-    <Button
-      onClick={onClick}
-      disabled={disabled}
-      className="w-full cursor-pointer"
-    >
-      {isPending ? (
-        <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
-        <div className="mr-2 h-4 w-4">{icon}</div>
-      )}
-      {label}
-    </Button>
+    <motion.div {...scaleTap} className="w-full">
+      <Button onClick={onClick} disabled={disabled} className="w-full cursor-pointer">
+        {isPending ? (
+          <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <div className="mr-2 h-4 w-4">{icon}</div>
+        )}
+        {label}
+      </Button>
+    </motion.div>
   );
 }
