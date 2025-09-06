@@ -1,4 +1,4 @@
-# Workshop Tamagosui - Pengembangan Smart Contract Move Tingkat Lanjut
+# Workshop Tamagosui - Pengembangan Smart Contract Move Tingkat Lanjut by Rama
 
 ## 🚀 Modul 3: Advanced Smart Contract Development with Tamagosui
 
