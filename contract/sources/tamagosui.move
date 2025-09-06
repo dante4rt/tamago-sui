@@ -24,8 +24,11 @@ const PET_LEVEL_3_IMAGE_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata
 const PET_LEVEL_3_IMAGE_WITH_GLASSES_URL:vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreigs6r3rdupoji7pqmpwe76z7wysguzdlq43t3wqmzi2654ux5n6uu";
 const PET_SLEEP_IMAGE_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreihwofl5stihtzjixfhrtznd7zqkclfhmlshgsg7cbszzjqqpvf7ae";
 const ACCESSORY_GLASSES_IMAGE_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreigyivmq45od3jkryryi3w6t5j65hcnfh5kgwpi2ex7llf2i6se7de";
+const ACCESSORY_HAT_IMAGE_URL: vector<u8> = b"https://aqua-robust-coyote-537.mypinata.cloud/ipfs/bafkreibgiquk2ah5zzwofg436hxkwfnn5aee56ojwybyjw2pbps5o2qijm";
+const ACCESSORY_TOY_IMAGE_URL: vector<u8> = b"https://aqua-robust-coyote-537.mypinata.cloud/ipfs/bafkreielc5mcftz2ccjypmwez3erbl7l5zainvltlnwmqffzsqdpzwpd6q";
 
 const EQUIPPED_ITEM_KEY: vector<u8> = b"equipped_item";
+const EQUIPPED_ITEM_KIND_KEY: vector<u8> = b"equipped_item_kind"; // 1=glasses,2=hat,3=toy
 const SLEEP_STARTED_AT_KEY: vector<u8> = b"sleep_started_at";
 
 // === Game Balance ===
@@ -496,7 +499,7 @@ public entry fun mint_hat(ctx: &mut TxContext) {
     let accessory = PetAccessory {
         id: object::new(ctx),
         name: string::utf8(b"stylish hat"),
-        image_url: string::utf8(b"https://ipfs.filebase.io/ipfs/bafkreiahatplaceholder")
+        image_url: string::utf8(ACCESSORY_HAT_IMAGE_URL)
     };
     transfer::public_transfer(accessory, ctx.sender());
 }
@@ -505,20 +508,45 @@ public entry fun mint_toy(ctx: &mut TxContext) {
     let accessory = PetAccessory {
         id: object::new(ctx),
         name: string::utf8(b"squeaky toy"),
-        image_url: string::utf8(b"https://ipfs.filebase.io/ipfs/bafkreiatoyplaceholder")
+        image_url: string::utf8(ACCESSORY_TOY_IMAGE_URL)
     };
     transfer::public_transfer(accessory, ctx.sender());
 }
 
-public entry fun equip_accessory(pet: &mut Pet, accessory: PetAccessory) {
+public entry fun equip_accessory(pet: &mut Pet, accessory: PetAccessory, ctx: &mut TxContext) {
     assert!(!is_sleeping(pet), E_PET_IS_ASLEEP);
 
     let key = string::utf8(EQUIPPED_ITEM_KEY);
+    let kind_key = string::utf8(EQUIPPED_ITEM_KIND_KEY);
+
+    // Strict mode: do not allow equipping if something is already equipped
     assert!(!dynamic_field::exists_<String>(&pet.id, copy key), E_ITEM_ALREADY_EQUIPPED);
 
-    // Add accessory to pet
+    // Add new accessory to pet
     dynamic_field::add(&mut pet.id, key, accessory);
-    // Update image
+    // Backward-compatible default kind = glasses
+    dynamic_field::add(&mut pet.id, kind_key, 1u8);
+    // Update image (now independent of accessory type)
+    update_pet_image(pet);
+    emit_action(pet, b"equipped_item");
+}
+
+public entry fun equip_accessory_with_kind(pet: &mut Pet, accessory: PetAccessory, kind: u8, ctx: &mut TxContext) {
+    assert!(!is_sleeping(pet), E_PET_IS_ASLEEP);
+
+    let key = string::utf8(EQUIPPED_ITEM_KEY);
+    let kind_key = string::utf8(EQUIPPED_ITEM_KIND_KEY);
+
+    if (dynamic_field::exists_<String>(&pet.id, copy key)) {
+        let prev: PetAccessory = dynamic_field::remove<String, PetAccessory>(&mut pet.id, copy key);
+        transfer::transfer(prev, ctx.sender());
+        if (dynamic_field::exists_<String>(&pet.id, copy kind_key)) {
+            let _old: u8 = dynamic_field::remove<String, u8>(&mut pet.id, copy kind_key);
+        };
+    };
+
+    dynamic_field::add(&mut pet.id, key, accessory);
+    dynamic_field::add(&mut pet.id, kind_key, kind);
     update_pet_image(pet);
     emit_action(pet, b"equipped_item");
 }
@@ -527,10 +555,14 @@ public entry fun unequip_accessory(pet: &mut Pet, ctx: &mut TxContext) {
     assert!(!is_sleeping(pet), E_PET_IS_ASLEEP);
 
     let key = string::utf8(EQUIPPED_ITEM_KEY);
+    let kind_key = string::utf8(EQUIPPED_ITEM_KIND_KEY);
     assert!(dynamic_field::exists_<String>(&pet.id, key), E_NO_ITEM_EQUIPPED);
 
     // Remove accessory
     let accessory: PetAccessory = dynamic_field::remove<String, PetAccessory>(&mut pet.id, key);
+    if (dynamic_field::exists_<String>(&pet.id, copy kind_key)) {
+        let _old: u8 = dynamic_field::remove<String, u8>(&mut pet.id, copy kind_key);
+    };
     // Update image
     update_pet_image(pet);
 
@@ -551,26 +583,39 @@ fun emit_action(pet: &Pet, action: vector<u8>) {
 
 fun update_pet_image(pet: &mut Pet) {
     let key = string::utf8(EQUIPPED_ITEM_KEY);
-    let has_accessory = dynamic_field::exists_<String>(&pet.id, key);
-    
+    let kind_key = string::utf8(EQUIPPED_ITEM_KIND_KEY);
+
+    if (dynamic_field::exists_<String>(&pet.id, copy key) && dynamic_field::exists_<String>(&pet.id, copy kind_key)) {
+        let kind_ref = dynamic_field::borrow<String, u8>(&pet.id, kind_key);
+        let kind_val = *kind_ref;
+        if (kind_val == 1) {
+            // Glasses: use level-specific variants
+            if (pet.game_data.level == 1) {
+                pet.image_url = string::utf8(PET_LEVEL_1_IMAGE_WITH_GLASSES_URL);
+            } else if (pet.game_data.level == 2) {
+                pet.image_url = string::utf8(PET_LEVEL_2_IMAGE_WITH_GLASSES_URL);
+            } else {
+                pet.image_url = string::utf8(PET_LEVEL_3_IMAGE_WITH_GLASSES_URL);
+            };
+            return;
+        } else if (kind_val == 2) {
+            // Hat: single image for all levels (can expand later)
+            pet.image_url = string::utf8(ACCESSORY_HAT_IMAGE_URL);
+            return;
+        } else if (kind_val == 3) {
+            // Toy: single image for all levels (can expand later)
+            pet.image_url = string::utf8(ACCESSORY_TOY_IMAGE_URL);
+            return;
+        };
+    };
+
+    // Fallback to base image per level
     if (pet.game_data.level == 1) {
-        if (has_accessory) {
-            pet.image_url = string::utf8(PET_LEVEL_1_IMAGE_WITH_GLASSES_URL);
-        } else {
-            pet.image_url = string::utf8(PET_LEVEL_1_IMAGE_URL);
-        }
+        pet.image_url = string::utf8(PET_LEVEL_1_IMAGE_URL);
     } else if (pet.game_data.level == 2) {
-        if (has_accessory) {
-            pet.image_url = string::utf8(PET_LEVEL_2_IMAGE_WITH_GLASSES_URL);
-        } else {
-            pet.image_url = string::utf8(PET_LEVEL_2_IMAGE_URL);
-        }
+        pet.image_url = string::utf8(PET_LEVEL_2_IMAGE_URL);
     } else if (pet.game_data.level >= 3) {
-        if (has_accessory) {
-            pet.image_url = string::utf8(PET_LEVEL_3_IMAGE_WITH_GLASSES_URL);
-        } else {
-            pet.image_url = string::utf8(PET_LEVEL_3_IMAGE_URL);
-        }
+        pet.image_url = string::utf8(PET_LEVEL_3_IMAGE_URL);
     };
 }
 

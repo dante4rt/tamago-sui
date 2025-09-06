@@ -17,6 +17,7 @@ const mutateKeyEquipAccessory = ["mutate", "equip-accessory"];
 type UseMutateEquipAccessory = {
   petId: string;
   accessoryId: string;
+  accessoryName?: string;
 };
 
 export function UseMutateEquipAccessory() {
@@ -27,13 +28,21 @@ export function UseMutateEquipAccessory() {
 
   return useMutation({
     mutationKey: mutateKeyEquipAccessory,
-    mutationFn: async ({ petId, accessoryId }: UseMutateEquipAccessory) => {
+    mutationFn: async ({ petId, accessoryId, accessoryName }: UseMutateEquipAccessory) => {
       if (!currentAccount) throw new Error("No connected account");
 
       const tx = new Transaction();
+      // Map simple name to kind: 1 glasses, 2 hat, 3 toy
+      const lower = (accessoryName || "").toLowerCase();
+      const kind = lower.includes("hat")
+        ? 2
+        : lower.includes("toy")
+          ? 3
+          : 1;
+
       tx.moveCall({
-        target: `${PACKAGE_ID}::${MODULE_NAME}::equip_accessory`,
-        arguments: [tx.object(petId), tx.object(accessoryId)],
+        target: `${PACKAGE_ID}::${MODULE_NAME}::equip_accessory_with_kind`,
+        arguments: [tx.object(petId), tx.object(accessoryId), tx.pure.u8(kind)],
       });
 
       const { digest } = await signAndExecute({ transaction: tx });
@@ -53,7 +62,7 @@ export function UseMutateEquipAccessory() {
       queryClient.invalidateQueries({ queryKey: queryKeyEquippedAccessory });
     },
     onError: (error) => {
-      console.error("Error feeding pet:", error);
+      console.error("Error equipping accessory:", error);
       toast.error(`Error equipping accessory: ${error.message}`);
     },
   });

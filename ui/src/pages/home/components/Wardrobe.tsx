@@ -99,7 +99,11 @@ export function WardrobeManager({
                 <Button
                   className="cursor-pointer"
                   onClick={() =>
-                    mutateEquip({ petId: pet.id, accessoryId: acc.id.id })
+                    mutateEquip({
+                      petId: pet.id,
+                      accessoryId: acc.id.id,
+                      accessoryName: acc.name,
+                    })
                   }
                   disabled={isAnyActionPending || isProcessingWardrobe}
                   size="sm"
