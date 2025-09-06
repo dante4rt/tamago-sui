@@ -28,6 +28,22 @@ const GameBalanceBCS = bcs.struct("GameBalance", {
   sleep_happiness_loss_ms: bcs.u64(),
 
   exp_per_level: bcs.u64(),
+
+  // Exercise
+  exercise_energy_loss: bcs.u8(),
+  exercise_hunger_loss: bcs.u8(),
+  exercise_experience_gain: bcs.u64(),
+  exercise_happiness_gain: bcs.u8(),
+
+  // Study
+  study_energy_loss: bcs.u8(),
+  study_happiness_loss: bcs.u8(),
+  study_experience_gain: bcs.u64(),
+
+  // Rest
+  rest_energy_gain: bcs.u8(),
+  rest_happiness_gain: bcs.u8(),
+  rest_hunger_loss: bcs.u8(),
 });
 
 const queryKeyGameBalance = ["game-balance"];

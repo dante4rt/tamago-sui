@@ -5,6 +5,8 @@ import { CardFooter } from "@/components/ui/card";
 
 import { UseMutateEquipAccessory } from "@/hooks/useMutateEquipAccessory";
 import { useMutateMintAccessory } from "@/hooks/useMutateMintAccessory";
+import { useMutateMintHat } from "@/hooks/useMutateMintHat";
+import { useMutateMintToy } from "@/hooks/useMutateMintToy";
 import { UseMutateUnequipAccessory } from "@/hooks/useMutateUnequipAccessory";
 import { useQueryEquippedAccessory } from "@/hooks/useQueryEquippedAccessory";
 import { useQueryOwnedAccessories } from "@/hooks/useQueryOwnedAccessories";
@@ -22,6 +24,10 @@ export function WardrobeManager({
 }: WardrobeManagerProps) {
   // --- Hooks for Actions ---
   const { mutate: mutateMint, isPending: isMinting } = useMutateMintAccessory();
+  const { mutate: mutateMintHat, isPending: isMintingHat } =
+    useMutateMintHat();
+  const { mutate: mutateMintToy, isPending: isMintingToy } =
+    useMutateMintToy();
   const { mutate: mutateEquip, isPending: isEquipping } =
     UseMutateEquipAccessory();
   const { mutate: mutateUnequip, isPending: isUnequipping } =
@@ -34,7 +40,8 @@ export function WardrobeManager({
     useQueryEquippedAccessory({ petId: pet.id });
 
   // A specific loading state for wardrobe actions to disable buttons.
-  const isProcessingWardrobe = isMinting || isEquipping || isUnequipping;
+  const isProcessingWardrobe =
+    isMinting || isMintingHat || isMintingToy || isEquipping || isUnequipping;
   const isLoading = isLoadingAccessories || isLoadingEquipped;
 
   const renderContent = () => {
@@ -106,18 +113,47 @@ export function WardrobeManager({
     }
     // Priority 4: If nothing is equipped and inventory is empty, show the "Mint" button.
     return (
-      <Button
-        onClick={() => mutateMint()}
-        disabled={isAnyActionPending || isProcessingWardrobe}
-        className="w-full cursor-pointer"
-      >
-        {isMinting ? (
-          <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-        ) : (
-          <GlassesIcon className="mr-2 h-4 w-4" />
-        )}{" "}
-        Mint Cool Glasses
-      </Button>
+      <div className="grid grid-cols-3 gap-2 w-full">
+        <Button
+          onClick={() => mutateMint()}
+          disabled={isAnyActionPending || isProcessingWardrobe}
+          className="cursor-pointer"
+          size="sm"
+        >
+          {isMinting ? (
+            <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <GlassesIcon className="mr-2 h-4 w-4" />
+          )}{" "}
+          Glasses
+        </Button>
+        <Button
+          onClick={() => mutateMintHat()}
+          disabled={isAnyActionPending || isProcessingWardrobe}
+          className="cursor-pointer"
+          size="sm"
+        >
+          {isMintingHat ? (
+            <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <WarehouseIcon className="mr-2 h-4 w-4" />
+          )}{" "}
+          Hat
+        </Button>
+        <Button
+          onClick={() => mutateMintToy()}
+          disabled={isAnyActionPending || isProcessingWardrobe}
+          className="cursor-pointer"
+          size="sm"
+        >
+          {isMintingToy ? (
+            <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <WarehouseIcon className="mr-2 h-4 w-4" />
+          )}{" "}
+          Toy
+        </Button>
+      </div>
     );
   };
 

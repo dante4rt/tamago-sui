@@ -11,6 +11,9 @@ import {
   BriefcaseIcon,
   ZapIcon,
   ChevronUpIcon,
+  BookOpenIcon,
+  DumbbellIcon,
+  CoffeeIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,6 +42,9 @@ import { useMutatePlayWithPet } from "@/hooks/useMutatePlayWithPet";
 import { useMutateWakeUpPet } from "@/hooks/useMutateWakeUpPet";
 import { useMutateWorkForCoins } from "@/hooks/useMutateWorkForCoins";
 import { useQueryGameBalance } from "@/hooks/useQueryGameBalance";
+import { useMutateExercise } from "@/hooks/useMutateExercise";
+import { useMutateStudy } from "@/hooks/useMutateStudy";
+import { useMutateRest } from "@/hooks/useMutateRest";
 
 import type { PetStruct } from "@/types/Pet";
 
@@ -59,6 +65,10 @@ export default function PetComponent({ pet }: PetDashboardProps) {
     useMutatePlayWithPet();
   const { mutate: mutateWorkForCoins, isPending: isWorking } =
     useMutateWorkForCoins();
+  const { mutate: mutateExercise, isPending: isExercising } =
+    useMutateExercise();
+  const { mutate: mutateStudy, isPending: isStudying } = useMutateStudy();
+  const { mutate: mutateRest, isPending: isResting } = useMutateRest();
 
   const { mutate: mutateLetPetSleep, isPending: isSleeping } =
     useMutateLetPetSleep();
@@ -110,7 +120,14 @@ export default function PetComponent({ pet }: PetDashboardProps) {
   // --- Client-side UI Logic & Button Disabling ---
   // `isAnyActionPending` prevents the user from sending multiple transactions at once.
   const isAnyActionPending =
-    isFeeding || isPlaying || isSleeping || isWorking || isLevelingUp;
+    isFeeding ||
+    isPlaying ||
+    isSleeping ||
+    isWorking ||
+    isLevelingUp ||
+    isExercising ||
+    isStudying ||
+    isResting;
 
   // These `can...` variables mirror the smart contract's rules (`assert!`) on the client-side.
   const canFeed =
@@ -126,6 +143,13 @@ export default function PetComponent({ pet }: PetDashboardProps) {
     pet.stats.energy >= gameBalance.work_energy_loss &&
     pet.stats.happiness >= gameBalance.work_happiness_loss &&
     pet.stats.hunger >= gameBalance.work_hunger_loss;
+  const canExercise =
+    !pet.isSleeping &&
+    pet.stats.energy >= gameBalance.exercise_energy_loss &&
+    pet.stats.hunger >= gameBalance.exercise_hunger_loss;
+  const canStudy =
+    !pet.isSleeping && pet.stats.energy >= gameBalance.study_energy_loss;
+  const canRest = !pet.isSleeping && pet.stats.energy < gameBalance.max_stat;
   const canLevelUp =
     !pet.isSleeping &&
     pet.game_data.experience >=
@@ -172,6 +196,12 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                   <p>Experience Points (XP)</p>
                 </TooltipContent>
               </Tooltip>
+            </div>
+            {/* Personality */}
+            <div className="flex justify-center">
+              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 border">
+                Personality: {personalityLabel(pet.personality)}
+              </span>
             </div>
 
             {/* Stat Bars */}
@@ -224,6 +254,20 @@ export default function PetComponent({ pet }: PetDashboardProps) {
               label="Play"
               icon={<PlayIcon />}
             />
+            <ActionButton
+              onClick={() => mutateExercise({ petId: pet.id })}
+              disabled={!canExercise || isAnyActionPending}
+              isPending={isExercising}
+              label="Exercise"
+              icon={<DumbbellIcon />}
+            />
+            <ActionButton
+              onClick={() => mutateStudy({ petId: pet.id })}
+              disabled={!canStudy || isAnyActionPending}
+              isPending={isStudying}
+              label="Study"
+              icon={<BookOpenIcon />}
+            />
             <div className="col-span-2">
               <ActionButton
                 onClick={() => mutateWorkForCoins({ petId: pet.id })}
@@ -249,18 +293,32 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 Wake Up!
               </Button>
             ) : (
-              <Button
-                onClick={() => mutateLetPetSleep({ petId: pet.id })}
-                disabled={isAnyActionPending}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                {isSleeping ? (
-                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <BedIcon className="mr-2 h-4 w-4" />
-                )}{" "}
-                Sleep
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => mutateLetPetSleep({ petId: pet.id })}
+                  disabled={isAnyActionPending}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  {isSleeping ? (
+                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <BedIcon className="mr-2 h-4 w-4" />
+                  )}{" "}
+                  Sleep
+                </Button>
+                <Button
+                  onClick={() => mutateRest({ petId: pet.id })}
+                  disabled={!canRest || isAnyActionPending}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {isResting ? (
+                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CoffeeIcon className="mr-2 h-4 w-4" />
+                  )}{" "}
+                  Rest
+                </Button>
+              </div>
             )}
           </div>
         </CardContent>
@@ -271,4 +329,17 @@ export default function PetComponent({ pet }: PetDashboardProps) {
       </Card>
     </TooltipProvider>
   );
+}
+
+function personalityLabel(value: number) {
+  switch (value) {
+    case 1:
+      return "Athletic";
+    case 2:
+      return "Studious";
+    case 3:
+      return "Lazy";
+    default:
+      return "Balanced";
+  }
 }

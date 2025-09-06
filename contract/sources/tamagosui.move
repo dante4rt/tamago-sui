@@ -13,6 +13,7 @@ const E_NO_ITEM_EQUIPPED: u64 = 106;
 const E_NOT_ENOUGH_EXP: u64 = 107;
 const E_PET_IS_ASLEEP: u64 = 108;
 const E_PET_IS_ALREADY_ASLEEP: u64 = 109;
+const E_NO_STAT_ROOM: u64 = 110; // For rest when energy already max
 
 // === Constants ===
 const PET_LEVEL_1_IMAGE_URL: vector<u8> = b"https://raw.githubusercontent.com/xfajarr/stacklend/refs/heads/main/photo_2023-04-30_12-46-11.jpg";
@@ -56,6 +57,23 @@ public struct GameBalance has copy, drop {
 
     // Level settings
     exp_per_level: u64,
+
+    // New actions — base values
+    // Exercise
+    exercise_energy_loss: u8,
+    exercise_hunger_loss: u8,
+    exercise_experience_gain: u64,
+    exercise_happiness_gain: u8,
+
+    // Study
+    study_energy_loss: u8,
+    study_happiness_loss: u8,
+    study_experience_gain: u64,
+
+    // Rest
+    rest_energy_gain: u8,
+    rest_happiness_gain: u8,
+    rest_hunger_loss: u8,
 }
 
 fun get_game_balance(): GameBalance {
@@ -87,6 +105,22 @@ fun get_game_balance(): GameBalance {
         
         // Level
         exp_per_level: 100,
+
+        // Exercise
+        exercise_energy_loss: 18,
+        exercise_hunger_loss: 10,
+        exercise_experience_gain: 15,
+        exercise_happiness_gain: 8,
+
+        // Study
+        study_energy_loss: 10,
+        study_happiness_loss: 6,
+        study_experience_gain: 25,
+
+        // Rest (instant, not using Clock)
+        rest_energy_gain: 12,
+        rest_happiness_gain: 6,
+        rest_hunger_loss: 4,
     }
 }
 
@@ -99,6 +133,9 @@ public struct Pet has key, store {
     adopted_at: u64,
     stats: PetStats,
     game_data: PetGameData,
+    // Personality trait affecting action outcomes
+    // 0 = Balanced, 1 = Athletic, 2 = Studious, 3 = Lazy
+    personality: u8,
 }
 
 public struct PetAccessory has key, store {
@@ -197,7 +234,8 @@ public entry fun adopt_pet(
         image_url: string::utf8(PET_LEVEL_1_IMAGE_URL),
         adopted_at: current_time,
         stats: pet_stats,
-        game_data: pet_game_data
+        game_data: pet_game_data,
+        personality: choose_personality(current_time),
     };
 
     let pet_id = object::id(&pet);
@@ -245,6 +283,103 @@ public entry fun play_with_pet(pet: &mut Pet) {
         pet.stats.happiness + gb.play_happiness_gain;
 
     emit_action(pet, b"played");
+}
+
+// --- New actions: exercise, study, rest ---
+public entry fun exercise(pet: &mut Pet) {
+    assert!(!is_sleeping(pet), E_PET_IS_ASLEEP);
+
+    let gb = get_game_balance();
+
+    let mut energy_loss = gb.exercise_energy_loss;
+    let mut hunger_loss = gb.exercise_hunger_loss;
+    let mut xp_gain = gb.exercise_experience_gain;
+    let mut happy_gain = gb.exercise_happiness_gain;
+
+    // Personality effects
+    if (pet.personality == 1) { // Athletic
+        if (energy_loss > 5) energy_loss = energy_loss - 5;
+        xp_gain = xp_gain + 5;
+        happy_gain = happy_gain + 4;
+    } else if (pet.personality == 3) { // Lazy
+        energy_loss = energy_loss + 4;
+    };
+
+    assert!(pet.stats.energy >= energy_loss, E_PET_TOO_TIRED);
+    assert!(pet.stats.hunger >= hunger_loss, E_PET_TOO_HUNGRY);
+
+    pet.stats.energy = pet.stats.energy - energy_loss;
+    pet.stats.hunger = pet.stats.hunger - hunger_loss;
+    pet.game_data.experience = pet.game_data.experience + xp_gain;
+    pet.stats.happiness = if (pet.stats.happiness + happy_gain > gb.max_stat)
+        gb.max_stat
+    else
+        pet.stats.happiness + happy_gain;
+
+    emit_action(pet, b"exercised");
+}
+
+public entry fun study(pet: &mut Pet) {
+    assert!(!is_sleeping(pet), E_PET_IS_ASLEEP);
+
+    let gb = get_game_balance();
+
+    let mut energy_loss = gb.study_energy_loss;
+    let mut happy_loss = gb.study_happiness_loss;
+    let mut xp_gain = gb.study_experience_gain;
+
+    if (pet.personality == 2) { // Studious
+        if (happy_loss > 2) happy_loss = happy_loss - 2;
+        xp_gain = xp_gain + 10;
+    } else if (pet.personality == 1) { // Athletic
+        // Studying feels less fun
+        happy_loss = happy_loss + 2;
+    };
+
+    assert!(pet.stats.energy >= energy_loss, E_PET_TOO_TIRED);
+    pet.stats.energy = pet.stats.energy - energy_loss;
+    pet.game_data.experience = pet.game_data.experience + xp_gain;
+    pet.stats.happiness = if (pet.stats.happiness > happy_loss)
+        pet.stats.happiness - happy_loss
+    else
+        0;
+
+    emit_action(pet, b"studied");
+}
+
+public entry fun rest(pet: &mut Pet) {
+    assert!(!is_sleeping(pet), E_PET_IS_ASLEEP);
+    let gb = get_game_balance();
+
+    // Cannot rest if already at max energy
+    assert!(pet.stats.energy < gb.max_stat, E_NO_STAT_ROOM);
+
+    let mut energy_gain = gb.rest_energy_gain;
+    let mut happy_gain = gb.rest_happiness_gain;
+    let mut hunger_loss = gb.rest_hunger_loss;
+
+    if (pet.personality == 3) { // Lazy
+        energy_gain = energy_gain + 4;
+        if (hunger_loss > 1) hunger_loss = hunger_loss - 1;
+    } else if (pet.personality == 1) { // Athletic
+        // Resting slightly less satisfying
+        if (happy_gain > 1) happy_gain = happy_gain - 1;
+    };
+
+    pet.stats.energy = if (pet.stats.energy + energy_gain > gb.max_stat)
+        gb.max_stat
+    else
+        pet.stats.energy + energy_gain;
+    pet.stats.happiness = if (pet.stats.happiness + happy_gain > gb.max_stat)
+        gb.max_stat
+    else
+        pet.stats.happiness + happy_gain;
+    pet.stats.hunger = if (pet.stats.hunger > hunger_loss)
+        pet.stats.hunger - hunger_loss
+    else
+        0;
+
+    emit_action(pet, b"rested");
 }
 
 public entry fun work_for_coins(pet: &mut Pet) {
@@ -356,6 +491,25 @@ public entry fun mint_accessory(ctx: &mut TxContext) {
     transfer::public_transfer(accessory, ctx.sender());
 }
 
+/// Additional beginner accessories
+public entry fun mint_hat(ctx: &mut TxContext) {
+    let accessory = PetAccessory {
+        id: object::new(ctx),
+        name: string::utf8(b"stylish hat"),
+        image_url: string::utf8(b"https://ipfs.filebase.io/ipfs/bafkreiahatplaceholder")
+    };
+    transfer::public_transfer(accessory, ctx.sender());
+}
+
+public entry fun mint_toy(ctx: &mut TxContext) {
+    let accessory = PetAccessory {
+        id: object::new(ctx),
+        name: string::utf8(b"squeaky toy"),
+        image_url: string::utf8(b"https://ipfs.filebase.io/ipfs/bafkreiatoyplaceholder")
+    };
+    transfer::public_transfer(accessory, ctx.sender());
+}
+
 public entry fun equip_accessory(pet: &mut Pet, accessory: PetAccessory) {
     assert!(!is_sleeping(pet), E_PET_IS_ASLEEP);
 
@@ -429,6 +583,7 @@ public fun get_pet_level(pet: &Pet): u8 { pet.game_data.level }
 public fun get_pet_energy(pet: &Pet): u8 { pet.stats.energy }
 public fun get_pet_hunger(pet: &Pet): u8 { pet.stats.hunger }
 public fun get_pet_happiness(pet: &Pet): u8 { pet.stats.happiness }
+public fun get_pet_personality(pet: &Pet): u8 { pet.personality }
 
 public fun get_pet_stats(pet: &Pet): (u8, u8, u8) {
     (pet.stats.energy, pet.stats.hunger, pet.stats.happiness)
@@ -446,4 +601,10 @@ public fun is_sleeping(pet: &Pet): bool {
 #[test_only]
 public fun init_for_testing(ctx: &mut TxContext) {
     init(TAMAGOSUI {}, ctx);
+}
+
+// === Internal helpers ===
+fun choose_personality(seed: u64): u8 {
+    // Very simple pseudo-random: 0..3
+    ((seed % 4) as u8)
 }
