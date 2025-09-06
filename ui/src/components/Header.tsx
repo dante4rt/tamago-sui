@@ -11,16 +11,11 @@ export default function Header() {
 
   const isDark = (resolvedTheme ?? theme) === "dark";
   const connectRef = useRef<HTMLDivElement>(null);
-  const [connectHeight, setConnectHeight] = useState<number | null>(null);
 
   useEffect(() => {
     const measure = () => {
       const root = connectRef.current;
       if (!root) return;
-      const btn = root.querySelector("button");
-      const rect =
-        (btn as HTMLElement | null)?.getBoundingClientRect() ?? root.getBoundingClientRect();
-      if (rect && rect.height) setConnectHeight(Math.round(rect.height));
     };
     measure();
     window.addEventListener("resize", measure);
@@ -38,8 +33,8 @@ export default function Header() {
               size="lg"
               aria-label="Toggle theme"
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="px-3 gap-2 rounded-[12px] border border-[#A0B6C3]/60 dark:border-[#A0B6C3]/40 bg-background hover:bg-background/80 text-[#2A3B47] font-mono font-bold leading-none"
-              style={{ height: connectHeight ?? undefined }}
+              className="!px-4 gap-2 rounded-[12px] border border-[#A0B6C3]/60 dark:border-[#A0B6C3]/40 bg-background hover:bg-background/80 text-[#2A3B47] font-mono font-bold leading-none"
+              style={{ height: "50px" }}
               title={isDark ? "Switch to light" : "Switch to dark"}
             >
               {isDark ? (
