@@ -38,17 +38,17 @@ export function useMutateMintAndEquip() {
       let result;
       if (kind === "hat") {
         result = tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::mint_hat`,
+          target: `${PACKAGE_ID}::${MODULE_NAME}::mint_hat_for_ptb`,
           arguments: [],
         });
       } else if (kind === "toy") {
         result = tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::mint_toy`,
+          target: `${PACKAGE_ID}::${MODULE_NAME}::mint_toy_for_ptb`,
           arguments: [],
         });
       } else {
         result = tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::mint_accessory`,
+          target: `${PACKAGE_ID}::${MODULE_NAME}::mint_accessory_for_ptb`,
           arguments: [],
         });
       }
@@ -84,4 +84,3 @@ export function useMutateMintAndEquip() {
     },
   });
 }
-

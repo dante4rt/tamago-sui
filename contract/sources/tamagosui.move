@@ -494,6 +494,16 @@ public entry fun mint_accessory(ctx: &mut TxContext) {
     transfer::public_transfer(accessory, ctx.sender());
 }
 
+/// PTB-friendly: returns the newly minted accessory without transferring,
+/// so it can be consumed by a subsequent Move call in the same transaction.
+public fun mint_accessory_for_ptb(ctx: &mut TxContext): PetAccessory {
+    PetAccessory {
+        id: object::new(ctx),
+        name: string::utf8(b"cool glasses"),
+        image_url: string::utf8(ACCESSORY_GLASSES_IMAGE_URL)
+    }
+}
+
 /// Additional beginner accessories
 public entry fun mint_hat(ctx: &mut TxContext) {
     let accessory = PetAccessory {
@@ -504,6 +514,14 @@ public entry fun mint_hat(ctx: &mut TxContext) {
     transfer::public_transfer(accessory, ctx.sender());
 }
 
+public fun mint_hat_for_ptb(ctx: &mut TxContext): PetAccessory {
+    PetAccessory {
+        id: object::new(ctx),
+        name: string::utf8(b"stylish hat"),
+        image_url: string::utf8(ACCESSORY_HAT_IMAGE_URL)
+    }
+}
+
 public entry fun mint_toy(ctx: &mut TxContext) {
     let accessory = PetAccessory {
         id: object::new(ctx),
@@ -511,6 +529,14 @@ public entry fun mint_toy(ctx: &mut TxContext) {
         image_url: string::utf8(ACCESSORY_TOY_IMAGE_URL)
     };
     transfer::public_transfer(accessory, ctx.sender());
+}
+
+public fun mint_toy_for_ptb(ctx: &mut TxContext): PetAccessory {
+    PetAccessory {
+        id: object::new(ctx),
+        name: string::utf8(b"squeaky toy"),
+        image_url: string::utf8(ACCESSORY_TOY_IMAGE_URL)
+    }
 }
 
 public entry fun equip_accessory(pet: &mut Pet, accessory: PetAccessory, ctx: &mut TxContext) {
