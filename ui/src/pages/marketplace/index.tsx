@@ -177,6 +177,7 @@ export default function MarketplacePage() {
                           {currentAccount?.address === l.seller && (
                             <Button
                               size="sm"
+                              variant="destructive"
                               onClick={() => cancelPet({ listingId: l.id })}
                               disabled={cancelingPet}
                             >
@@ -236,6 +237,7 @@ export default function MarketplacePage() {
                           {currentAccount?.address === l.seller && (
                             <Button
                               size="sm"
+                              variant="destructive"
                               onClick={() => cancelAcc({ listingId: l.id })}
                               disabled={cancelingAcc}
                             >
