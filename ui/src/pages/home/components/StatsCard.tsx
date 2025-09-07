@@ -1,16 +1,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { StatDisplay } from "./StatDisplay";
-import {
-  TrendingUpIcon,
-  StarIcon,
-  CoinsIcon,
-  BarChart3Icon,
-  UtensilsIcon,
-  SmileIcon,
-  ZapIcon,
-} from "lucide-react";
+import { TrendingUpIcon, StarIcon, CoinsIcon, BarChart3Icon } from "lucide-react";
 import type { PetStruct } from "@/types/Pet";
 import { animate } from "animejs";
 import { useEffect, useRef } from "react";
@@ -50,27 +41,6 @@ export function StatsCard({ pet }: StatsCardProps) {
     }
   }, []);
 
-  const stats = [
-    {
-      key: "hunger",
-      label: "Hunger",
-      value: pet.stats.hunger,
-      icon: <UtensilsIcon className="h-4 w-4" />,
-    },
-    {
-      key: "happiness",
-      label: "Happiness",
-      value: pet.stats.happiness,
-      icon: <SmileIcon className="h-4 w-4" />,
-    },
-    {
-      key: "energy",
-      label: "Energy",
-      value: pet.stats.energy,
-      icon: <ZapIcon className="h-4 w-4" />,
-    },
-  ];
-
   return (
     <motion.div ref={cardRef} whileHover="hover" variants={cardVariants} className="w-full">
       <Card className="w-full h-full border border-border overflow-hidden bg-gradient-to-br from-card via-card to-card/90 hover:shadow-lg transition-all duration-300">
@@ -82,7 +52,7 @@ export function StatsCard({ pet }: StatsCardProps) {
             >
               <BarChart3Icon className="h-6 w-6" />
             </motion.div>
-            Stats & Level
+            Progress & Wealth
           </CardTitle>
         </CardHeader>
 
@@ -116,14 +86,6 @@ export function StatsCard({ pet }: StatsCardProps) {
               </div>
               {pet.game_data.coins} Coins
             </div>
-          </div>
-
-          <div className="space-y-3">
-            {stats.map((stat) => (
-              <div key={stat.key}>
-                <StatDisplay label={stat.label} value={stat.value} icon={stat.icon} />
-              </div>
-            ))}
           </div>
 
           <div className="text-center">
