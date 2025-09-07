@@ -14,13 +14,7 @@ type ActionButtonProps = {
   icon: ReactNode;
 };
 
-export function ActionButton({
-  onClick,
-  disabled,
-  isPending,
-  label,
-  icon,
-}: ActionButtonProps) {
+export function ActionButton({ onClick, disabled, isPending, label, icon }: ActionButtonProps) {
   return (
     <motion.div {...scaleTap} className="w-full">
       <Button
@@ -28,13 +22,6 @@ export function ActionButton({
         disabled={disabled}
         className="w-full cursor-pointer relative overflow-hidden"
       >
-        {isPending && (
-          <motion.div
-            className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
-            animate={{ x: ["-100%", "100%"] }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-          />
-        )}
         {isPending ? (
           <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
         ) : (

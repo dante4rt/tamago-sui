@@ -25,7 +25,7 @@ export default function Header() {
 
   const location = useLocation();
   return (
-    <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-4">
           <Link to="/">
@@ -34,13 +34,17 @@ export default function Header() {
           <nav className="hidden sm:flex items-center gap-2 text-sm">
             <Link
               to="/"
-              className={`px-2 py-1 rounded ${location.pathname === "/" ? "bg-muted" : "hover:bg-muted"}`}
+              className={`px-2 py-1 rounded ${
+                location.pathname === "/" ? "bg-muted" : "hover:bg-muted"
+              }`}
             >
               Home
             </Link>
             <Link
               to="/marketplace"
-              className={`px-2 py-1 rounded ${location.pathname === "/marketplace" ? "bg-muted" : "hover:bg-muted"}`}
+              className={`px-2 py-1 rounded ${
+                location.pathname === "/marketplace" ? "bg-muted" : "hover:bg-muted"
+              }`}
             >
               Marketplace
             </Link>

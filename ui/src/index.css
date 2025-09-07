@@ -125,3 +125,245 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Enhanced Tamagotchi App Delights - Following Family's Design Principles */
+
+/* Smooth scroll behavior for better navigation */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus states for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--pistachio);
+  outline-offset: 2px;
+  transition: outline 0.2s ease-in-out;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(193, 215, 174, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, var(--pistachio), var(--tea-green));
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, var(--apricot), var(--pistachio));
+}
+
+/* Gentle selection highlighting */
+::selection {
+  background: rgba(140, 192, 132, 0.3);
+  color: inherit;
+}
+
+/* Enhanced input focus states */
+input:focus,
+textarea:focus {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Subtle button press feedback */
+button:active {
+  transform: translateY(1px);
+}
+
+/* Smooth transitions for theme switching */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Enhanced loading states */
+@keyframes gentle-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.loading-pulse {
+  animation: gentle-pulse 2s ease-in-out infinite;
+}
+
+/* Magical sparkle animation for special moments */
+@keyframes sparkle {
+  0%,
+  100% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+.sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+/* Gentle hover effects for cards */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Tamagotchi-specific animations */
+@keyframes pet-bounce {
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+  }
+}
+
+.pet-bounce {
+  animation: pet-bounce 3s ease-in-out infinite;
+}
+
+@keyframes gentle-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(140, 192, 132, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(140, 192, 132, 0.4);
+  }
+}
+
+.gentle-glow {
+  animation: gentle-glow 4s ease-in-out infinite;
+}
+
+/* Enhanced backdrop blur for modals and overlays */
+.backdrop-enhanced {
+  backdrop-filter: blur(12px) saturate(1.2);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.dark .backdrop-enhanced {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Playful gradient text animations */
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.gradient-text {
+  color: hsl(var(--primary));
+}
+
+/* Improved form field states */
+.form-field {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-field:focus-within {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(140, 192, 132, 0.1), 0 4px 6px -2px rgba(140, 192, 132, 0.05);
+}
+
+/* Delightful loading spinner */
+@keyframes tamagotchi-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.tamagotchi-spinner {
+  animation: tamagotchi-spin 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom Color Utilities for Natural Palette */
+.bg-apricot {
+  background-color: var(--apricot);
+}
+
+.bg-dutch-white {
+  background-color: var(--dutch-white);
+}
+
+.bg-tea-green {
+  background-color: var(--tea-green);
+}
+
+.bg-pistachio {
+  background-color: var(--pistachio);
+}
+
+.bg-battleship-gray {
+  background-color: var(--battleship-gray);
+}
+
+.text-apricot {
+  color: var(--apricot);
+}
+
+.text-dutch-white {
+  color: var(--dutch-white);
+}
+
+.text-tea-green {
+  color: var(--tea-green);
+}
+
+.text-pistachio {
+  color: var(--pistachio);
+}
+
+.text-battleship-gray {
+  color: var(--battleship-gray);
+}
+
+.border-apricot {
+  border-color: var(--apricot);
+}
+
+.border-dutch-white {
+  border-color: var(--dutch-white);
+}
+
+.border-tea-green {
+  border-color: var(--tea-green);
+}
+
+.border-pistachio {
+  border-color: var(--pistachio);
+}
+
+.border-battleship-gray {
+  border-color: var(--battleship-gray);
+}

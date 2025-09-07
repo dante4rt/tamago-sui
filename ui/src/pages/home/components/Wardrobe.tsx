@@ -47,7 +47,6 @@ export function WardrobeManager({ pet, isAnyActionPending }: WardrobeManagerProp
 
     return (
       <div className="w-full space-y-3">
-        {/* Equipped section (if any) */}
         {equippedAccessory && (
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3">
@@ -74,7 +73,6 @@ export function WardrobeManager({ pet, isAnyActionPending }: WardrobeManagerProp
           </div>
         )}
 
-        {/* Inventory list */}
         {ownedAccessories && ownedAccessories.length > 0 && (
           <div className="space-y-2">
             {ownedAccessories.map((acc) => (
@@ -108,7 +106,6 @@ export function WardrobeManager({ pet, isAnyActionPending }: WardrobeManagerProp
           </div>
         )}
 
-        {/* Mint actions — always visible */}
         <div className="grid grid-cols-3 gap-2 w-full">
           <motion.div {...scaleTap}>
             <Button
@@ -157,7 +154,6 @@ export function WardrobeManager({ pet, isAnyActionPending }: WardrobeManagerProp
           </motion.div>
         </div>
 
-        {/* Mint + Equip combos (PTB) — compact icon-only buttons */}
         <TooltipProvider>
           <div className="grid grid-cols-3 gap-2 w-full">
             <motion.div {...scaleTap}>
