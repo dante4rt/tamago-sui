@@ -10,22 +10,13 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const isDark = (resolvedTheme ?? theme) === "dark";
+  // Stabilize theme to prevent flicker
+  const isDark = mounted ? (resolvedTheme ?? theme) === "dark" : false;
   const connectRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const measure = () => {
-      const root = connectRef.current;
-      if (!root) return;
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [mounted, resolvedTheme]);
 
   const location = useLocation();
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b will-change-auto">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-4">
           <Link to="/">
@@ -50,25 +41,24 @@ export default function Header() {
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-2">
-          {mounted && (
-            <Button
-              variant="outline"
-              size="lg"
-              aria-label="Toggle theme"
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="!px-4 gap-2 rounded-[12px] border border-border bg-background hover:bg-background/80 text-foreground font-mono font-bold leading-none"
-              style={{ height: "50px" }}
-              title={isDark ? "Switch to light" : "Switch to dark"}
-            >
-              {isDark ? (
-                <SunIcon className="size-4 text-muted-foreground" />
-              ) : (
-                <MoonIcon className="size-4 text-muted-foreground" />
-              )}
-            </Button>
-          )}
-          <div ref={connectRef} className="contents">
+        <div className="flex items-center gap-2 min-w-0">
+          <Button
+            variant="outline"
+            size="lg"
+            aria-label="Toggle theme"
+            onClick={() => setTheme(isDark ? "light" : "dark")}
+            className="!px-4 gap-2 rounded-[12px] border border-border bg-background hover:bg-background/80 text-foreground font-mono font-bold leading-none flex-shrink-0"
+            style={{ height: "50px", width: "auto", minWidth: "50px" }}
+            title={isDark ? "Switch to light" : "Switch to dark"}
+            disabled={!mounted}
+          >
+            {mounted && isDark ? (
+              <SunIcon className="size-4 text-muted-foreground" />
+            ) : (
+              <MoonIcon className="size-4 text-muted-foreground" />
+            )}
+          </Button>
+          <div ref={connectRef} className="contents flex-shrink-0">
             <ConnectButton />
           </div>
         </div>

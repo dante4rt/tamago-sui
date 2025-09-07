@@ -1,5 +1,15 @@
-import { useState } from "react";
-import { CoinsIcon, XIcon, TagIcon, SparklesIcon, HeartIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  CoinsIcon,
+  XIcon,
+  TagIcon,
+  SparklesIcon,
+  HeartIcon,
+  ShoppingBagIcon,
+  StarIcon,
+  TentIcon,
+  PawPrintIcon,
+} from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,6 +103,11 @@ export default function MarketplacePage() {
   const [accPrices, setAccPrices] = useState<Record<string, number>>({});
   const [showListingForm, setShowListingForm] = useState(false);
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Tamagosui – Marketplace";
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="fixed inset-0 pointer-events-none">
@@ -108,7 +123,7 @@ export default function MarketplacePage() {
             ease: "easeInOut",
           }}
         >
-          🛍️
+          <ShoppingBagIcon className="h-6 w-6 text-tea-green" />
         </motion.div>
         <motion.div
           className="absolute bottom-32 right-20 text-lg opacity-15"
@@ -123,7 +138,7 @@ export default function MarketplacePage() {
             delay: 3,
           }}
         >
-          ✨
+          <SparklesIcon className="h-6 w-6 text-pistachio" />
         </motion.div>
       </div>
 
@@ -136,15 +151,19 @@ export default function MarketplacePage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border mb-6">
-            <SparklesIcon className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">🎪 Tamagotchi Marketplace</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-tea-green/20 to-pistachio/20 rounded-full border border-tea-green/30 mb-6">
+            <TentIcon className="h-4 w-4 text-tea-green" />
+            <span className="text-sm font-medium text-tea-green">Tamagotchi Marketplace</span>
           </div>
-          <h1 className="text-4xl font-bold gradient-text mb-4">
-            🌟 Find Your Perfect Companion! 🐾
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-tea-green via-pistachio to-tea-green bg-clip-text text-transparent mb-4">
+            <span className="inline-flex items-center gap-2 text-black dark:text-white">
+              <StarIcon className="h-8 w-8 text-tea-green" />
+              Find Your Perfect Companion!
+              <PawPrintIcon className="h-8 w-8 text-pistachio" />
+            </span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover adorable pets and magical accessories in our enchanted marketplace ✨
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto flex items-center justify-center gap-2">
+            Discover adorable pets and magical accessories in our enchanted marketplace.
           </p>
         </motion.div>
       </div>
@@ -159,7 +178,7 @@ export default function MarketplacePage() {
                     animate={{ rotate: showListingForm ? 180 : 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   >
-                    <TagIcon className="h-5 w-5 text-primary" />
+                    <TagIcon className="h-5 w-5 text-tea-green" />
                   </motion.div>
                   List Your Assets
                 </CardTitle>
@@ -168,7 +187,7 @@ export default function MarketplacePage() {
                   whileHover="hover"
                   whileTap="tap"
                   onClick={() => setShowListingForm(!showListingForm)}
-                  className="text-sm text-primary hover:text-primary/80 font-medium transition-colors duration-200 cursor-pointer"
+                  className="text-sm text-tea-green hover:text-pistachio font-medium transition-colors duration-200 cursor-pointer"
                 >
                   {showListingForm ? "Hide" : "Show"} Options
                 </motion.button>
@@ -187,12 +206,12 @@ export default function MarketplacePage() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <motion.div
-                        className="p-4 border rounded-lg bg-accent/10"
+                        className="p-4 border rounded-lg bg-gradient-to-br from-tea-green/10 to-pistachio/10 border-tea-green/20"
                         whileHover={{ scale: 1.01 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       >
                         <h3 className="font-semibold mb-3 flex items-center gap-2">
-                          <HeartIcon className="h-4 w-4 text-accent" />
+                          <HeartIcon className="h-4 w-4 text-tea-green" />
                           Pet
                         </h3>
                         {myPet ? (
@@ -205,7 +224,7 @@ export default function MarketplacePage() {
                             <img
                               src={myPet.image_url}
                               alt={myPet.name}
-                              className="w-12 h-12 rounded-full border-2 border-primary/30"
+                              className="w-12 h-12 rounded-full border-2 border-tea-green/30"
                             />
                             <div className="flex-1">
                               <div className="text-sm font-medium">{myPet.name}</div>
@@ -214,14 +233,19 @@ export default function MarketplacePage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Input
-                                type="number"
-                                min={1}
-                                value={petPrice}
-                                onChange={(e) => setPetPrice(Number(e.target.value))}
-                                className="w-24 text-center"
-                                placeholder="Price"
-                              />
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  value={petPrice}
+                                  onChange={(e) => setPetPrice(Number(e.target.value))}
+                                  className="w-24 text-center pr-8"
+                                  placeholder="Price"
+                                />
+                                <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                                  SUI
+                                </span>
+                              </div>
                               <motion.div
                                 variants={buttonVariants}
                                 whileHover="hover"
@@ -232,7 +256,7 @@ export default function MarketplacePage() {
                                   size="sm"
                                   disabled={listingPet}
                                   onClick={() => listPet({ petId: myPet.id, price: petPrice })}
-                                  className="bg-primary hover:bg-primary/90"
+                                  className="bg-gradient-to-r from-tea-green to-pistachio hover:from-pistachio hover:to-tea-green text-black dark:text-white transition-all duration-200 border"
                                 >
                                   {listingPet ? "Listing..." : "List"}
                                 </Button>
@@ -245,12 +269,12 @@ export default function MarketplacePage() {
                       </motion.div>
 
                       <motion.div
-                        className="p-4 border rounded-lg bg-secondary/10"
+                        className="p-4 border rounded-lg bg-gradient-to-br from-pistachio/10 to-tea-green/10 border-pistachio/20"
                         whileHover={{ scale: 1.01 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       >
                         <h3 className="font-semibold mb-3 flex items-center gap-2">
-                          <SparklesIcon className="h-4 w-4 text-secondary" />
+                          <SparklesIcon className="h-4 w-4 text-pistachio" />
                           Accessories
                         </h3>
                         {myAccs && myAccs.length > 0 ? (
@@ -266,22 +290,27 @@ export default function MarketplacePage() {
                                 <img
                                   src={acc.image_url}
                                   alt={acc.name}
-                                  className="w-10 h-10 rounded-md border-2 border-primary/30"
+                                  className="w-10 h-10 rounded-md border-2 border-pistachio/30"
                                 />
                                 <div className="flex-1 text-sm font-medium">{acc.name}</div>
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  value={accPrices[acc.id.id] ?? 1}
-                                  onChange={(e) =>
-                                    setAccPrices((p) => ({
-                                      ...p,
-                                      [acc.id.id]: Number(e.target.value),
-                                    }))
-                                  }
-                                  className="w-20 text-center"
-                                  placeholder="Price"
-                                />
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    min={1}
+                                    value={accPrices[acc.id.id] ?? 1}
+                                    onChange={(e) =>
+                                      setAccPrices((p) => ({
+                                        ...p,
+                                        [acc.id.id]: Number(e.target.value),
+                                      }))
+                                    }
+                                    className="w-20 text-center pr-8"
+                                    placeholder="Price"
+                                  />
+                                  <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                                    SUI
+                                  </span>
+                                </div>
                                 <motion.div
                                   variants={buttonVariants}
                                   whileHover="hover"
@@ -297,7 +326,7 @@ export default function MarketplacePage() {
                                         price: accPrices[acc.id.id] ?? 1,
                                       })
                                     }
-                                    className="bg-primary hover:bg-primary/90"
+                                    className="bg-gradient-to-r from-pistachio to-tea-green hover:from-tea-green hover:to-pistachio text-black dark:text-white border transition-all duration-200"
                                   >
                                     {listingAcc ? "..." : "List"}
                                   </Button>
@@ -338,11 +367,11 @@ export default function MarketplacePage() {
                       repeatDelay: 3,
                     }}
                   >
-                    <HeartIcon className="h-5 w-5 text-accent" />
+                    <HeartIcon className="h-5 w-5 text-tea-green" />
                   </motion.div>
                   Pet Listings
                   {petListings && petListings.length > 0 && (
-                    <span className="text-sm bg-accent/20 text-accent px-2 py-1 rounded-full">
+                    <span className="text-sm bg-tea-green/20 text-tea-green px-2 py-1 rounded-full">
                       {petListings.length}
                     </span>
                   )}
@@ -370,13 +399,13 @@ export default function MarketplacePage() {
                           exit="exit"
                           whileHover="hover"
                           layout
-                          className="flex items-center justify-between p-4 border rounded-lg bg-accent/20 hover:bg-accent/30 transition-colors duration-200 cursor-pointer"
+                          className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-tea-green/20 to-pistachio/20 hover:from-tea-green/30 hover:to-pistachio/30 border-tea-green/30 transition-colors duration-200 cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
                             <motion.img
                               src={l.pet?.image_url}
                               alt={l.pet?.name}
-                              className="w-12 h-12 rounded-full border-2 border-accent/30"
+                              className="w-12 h-12 rounded-full border-2 border-tea-green/30"
                               whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
                               transition={{ type: "spring", stiffness: 300, damping: 20 }}
                             />
@@ -389,7 +418,7 @@ export default function MarketplacePage() {
                           </div>
                           <div className="flex items-center gap-3">
                             <motion.span
-                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full border bg-primary/20 font-mono text-sm font-medium"
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full border bg-tea-green/20 border-tea-green/30 text-tea-green font-mono text-sm font-medium"
                               whileHover={{ scale: 1.05 }}
                             >
                               <CoinsIcon className="h-3 w-3" />
@@ -458,11 +487,11 @@ export default function MarketplacePage() {
                       repeatDelay: 4,
                     }}
                   >
-                    <SparklesIcon className="h-5 w-5 text-secondary" />
+                    <SparklesIcon className="h-5 w-5 text-pistachio" />
                   </motion.div>
                   Accessory Listings
                   {accListings && accListings.length > 0 && (
-                    <span className="text-sm bg-secondary/20 text-secondary px-2 py-1 rounded-full">
+                    <span className="text-sm bg-pistachio/20 text-pistachio px-2 py-1 rounded-full">
                       {accListings.length}
                     </span>
                   )}
@@ -490,13 +519,13 @@ export default function MarketplacePage() {
                           exit="exit"
                           whileHover="hover"
                           layout
-                          className="flex items-center justify-between p-4 border rounded-lg bg-secondary/20 hover:bg-secondary/30 transition-colors duration-200 cursor-pointer"
+                          className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-pistachio/20 to-tea-green/20 hover:from-pistachio/30 hover:to-tea-green/30 border-pistachio/30 transition-colors duration-200 cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
                             <motion.img
                               src={l.accessory?.image_url}
                               alt={l.accessory?.name}
-                              className="w-12 h-12 rounded-lg border-2 border-secondary/30"
+                              className="w-12 h-12 rounded-lg border-2 border-pistachio/30"
                               whileHover={{ scale: 1.1, rotate: [0, 5, -5, 0] }}
                               transition={{ type: "spring", stiffness: 300, damping: 20 }}
                             />
@@ -507,7 +536,7 @@ export default function MarketplacePage() {
                           </div>
                           <div className="flex items-center gap-3">
                             <motion.span
-                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full border bg-secondary/20 font-mono text-sm font-medium"
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full border bg-pistachio/20 border-pistachio/30 text-pistachio font-mono text-sm font-medium"
                               whileHover={{ scale: 1.05 }}
                             >
                               <CoinsIcon className="h-3 w-3" />

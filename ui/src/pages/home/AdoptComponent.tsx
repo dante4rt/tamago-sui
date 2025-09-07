@@ -148,39 +148,28 @@ export default function AdoptComponent() {
               >
                 <PawPrintIcon className="h-7 w-7 text-primary" />
               </motion.div>
-              🐾 Adopt Your Pet
+              Adopt Your Pet 🐾
             </CardTitle>
-            <CardDescription className="text-base flex items-center justify-center gap-1 mt-2">
-              <motion.div
-                animate={{
-                  rotate: [0, 15, -15, 0],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  repeatDelay: 1,
-                }}
-              >
-                ✨
-              </motion.div>
-              Ready to find your perfect digital companion?
-              <motion.div
-                animate={{
-                  rotate: [0, -15, 15, 0],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  repeatDelay: 1,
-                  delay: 1.5,
-                }}
-              >
-                🌟
-                <SparklesIcon className="h-4 w-4 text-secondary" />
-              </motion.div>
-              A gentle friend awaits you
+            <CardDescription className="text-base flex items-center justify-center gap-1 mt-2 flex-col">
+              <div className="inline-flex">Ready to find your perfect digital companion?</div>
+              <div className="inline-flex">
+                A gentle friend awaits you!{" "}
+                <motion.div
+                  animate={{
+                    rotate: [0, -15, 15, 0],
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    repeatDelay: 1,
+                    delay: 1.5,
+                  }}
+                >
+                  🌟
+                  <SparklesIcon className="h-4 w-4 text-secondary" />
+                </motion.div>
+              </div>
             </CardDescription>
           </motion.div>
         </CardHeader>

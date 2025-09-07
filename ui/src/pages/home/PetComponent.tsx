@@ -280,7 +280,7 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                   ) : (
                     <ChevronUpIcon className="mr-2 h-4 w-4" />
                   )}
-                  Evolve (if ready)
+                  Evolve
                 </Button>
               </motion.div>
             </div>
