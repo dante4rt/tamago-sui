@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CoinsIcon, ShoppingCartIcon, XIcon, TagIcon } from "lucide-react";
+import { CoinsIcon, XIcon, TagIcon } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,8 @@ import { useQueryOwnedPet } from "@/hooks/useQueryOwnedPet";
 import { useQueryOwnedAccessories } from "@/hooks/useQueryOwnedAccessories";
 import { useMutateListPet } from "@/hooks/useMutateListPet";
 import { useMutateCancelPetListing } from "@/hooks/useMutateCancelPetListing";
-import { useMutateBuyPet } from "@/hooks/useMutateBuyPet";
 import { useMutateListAccessory } from "@/hooks/useMutateListAccessory";
 import { useMutateCancelAccessoryListing } from "@/hooks/useMutateCancelAccessoryListing";
-import { useMutateBuyAccessory } from "@/hooks/useMutateBuyAccessory";
 
 import { useCurrentAccount } from "@mysten/dapp-kit";
 
@@ -29,11 +27,9 @@ export default function MarketplacePage() {
 
   const { mutate: listPet, isPending: listingPet } = useMutateListPet();
   const { mutate: cancelPet, isPending: cancelingPet } = useMutateCancelPetListing();
-  const { mutate: buyPet, isPending: buyingPet } = useMutateBuyPet();
 
   const { mutate: listAcc, isPending: listingAcc } = useMutateListAccessory();
   const { mutate: cancelAcc, isPending: cancelingAcc } = useMutateCancelAccessoryListing();
-  const { mutate: buyAcc, isPending: buyingAcc } = useMutateBuyAccessory();
 
   const [petPrice, setPetPrice] = useState(1);
   const [accPrices, setAccPrices] = useState<Record<string, number>>({});
@@ -175,19 +171,12 @@ export default function MarketplacePage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-mono">{l.price} SUI</span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => buyPet({ listingId: l.id, price: l.price })}
-                            disabled={buyingPet}
-                          >
-                            <ShoppingCartIcon className="h-4 w-4" /> Buy
-                          </Button>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md border bg-muted font-mono text-xs">
+                            {l.price} SUI
+                          </span>
                           {currentAccount?.address === l.seller && (
                             <Button
                               size="sm"
-                              variant="ghost"
                               onClick={() => cancelPet({ listingId: l.id })}
                               disabled={cancelingPet}
                             >
@@ -241,19 +230,12 @@ export default function MarketplacePage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-mono">{l.price} SUI</span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => buyAcc({ listingId: l.id, price: l.price })}
-                            disabled={buyingAcc}
-                          >
-                            <ShoppingCartIcon className="h-4 w-4" /> Buy
-                          </Button>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md border bg-muted font-mono text-xs">
+                            {l.price} SUI
+                          </span>
                           {currentAccount?.address === l.seller && (
                             <Button
                               size="sm"
-                              variant="ghost"
                               onClick={() => cancelAcc({ listingId: l.id })}
                               disabled={cancelingAcc}
                             >

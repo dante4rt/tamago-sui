@@ -13,26 +13,14 @@ export function useQueryPetListings() {
   return useQuery({
     queryKey: queryKeyPetListings,
     queryFn: async (): Promise<PetListing[]> => {
-      const extractOptionFirst = <T,>(opt: unknown): T | null => {
-        if (!opt || typeof opt !== "object") return null;
-        const o = opt as { fields?: Record<string, unknown> };
-        if (!o.fields || typeof o.fields !== "object") return null;
-        // Legacy Option: { fields: { vec: T[] } }
-        const maybeVec = (o.fields as { vec?: unknown }).vec;
-        if (Array.isArray(maybeVec)) return (maybeVec[0] as T) ?? null;
-        // Alt shape: { fields: { some: T } }
-        const maybeSome = (o.fields as { some?: unknown }).some;
-        if (maybeSome) return maybeSome as T;
-        // Alt shape: { fields: { value: T } }
-        const maybeValue = (o.fields as { value?: unknown }).value;
-        if (maybeValue) return maybeValue as T;
-        return null;
-      };
       // Derive by recent events
+      const eventType = `${PACKAGE_ID}::${MODULE_NAME}::PetListed`;
+
       const events = await suiClient.queryEvents({
-        query: { MoveEventType: `${PACKAGE_ID}::${MODULE_NAME}::PetListed` },
+        query: { MoveEventType: eventType },
         limit: 50,
       });
+
       type IdMaybe = string | { id?: string } | { bytes?: string };
       type ListedEventParsed = { listing_id?: IdMaybe; listingId?: IdMaybe };
       const extractId = (v: IdMaybe | undefined): string | null => {
@@ -48,41 +36,66 @@ export function useQueryPetListings() {
             .map((e): string | null => {
               const pj = (e as { parsedJson?: unknown }).parsedJson;
               if (pj && typeof pj === "object") {
-                const idMaybe = (pj as ListedEventParsed).listing_id ?? (pj as ListedEventParsed).listingId;
+                const idMaybe =
+                  (pj as ListedEventParsed).listing_id ?? (pj as ListedEventParsed).listingId;
                 return extractId(idMaybe);
               }
               return null;
             })
-            .filter((v: string | null): v is string => v !== null),
-        ),
+            .filter((v: string | null): v is string => v !== null)
+        )
       );
-      if (listingIds.length === 0) return [];
 
-      const objs = await suiClient.multiGetObjects({ ids: listingIds, options: { showContent: true } });
+      if (listingIds.length === 0) {
+        return [];
+      }
+
+      const objs = await suiClient.multiGetObjects({
+        ids: listingIds,
+        options: { showContent: true },
+      });
+
       const mapped: PetListing[] = objs
-        .map((obj) => getSuiObjectFields<RawPetListingFields>(obj))
-        .filter((f): f is RawPetListingFields => !!f)
+        .map((obj) => {
+          const fields = getSuiObjectFields<RawPetListingFields>(obj);
+
+          return fields;
+        })
+        .filter((f): f is RawPetListingFields => {
+          const isValid = !!f;
+
+          return isValid;
+        })
         .map<PetListing>((f) => {
-          type InnerPet = { fields: { id: { id: string }; name: string; image_url: string; game_data: { fields: { level: number } } } };
-          const inner = extractOptionFirst<InnerPet>(f.pet);
-          const active = !!inner;
-          const pet = inner
-            ? {
-                id: inner.fields.id.id,
-                name: inner.fields.name,
-                image_url: inner.fields.image_url,
-                level: inner.fields.game_data.fields.level,
-              }
-            : undefined;
-          return {
+          // The pet field is either null/undefined (sold/cancelled) or a direct Pet object
+          const petData = f.pet;
+          let active = false;
+          let pet = undefined;
+
+          if (petData && petData.fields) {
+            active = true;
+            pet = {
+              id: petData.fields.id.id,
+              name: petData.fields.name,
+              image_url: petData.fields.image_url,
+              level: petData.fields.game_data.fields.level,
+            };
+          }
+
+          const listing = {
             id: f.id.id,
             seller: f.seller,
             price: Number(f.price),
             active,
             pet,
           };
+
+          return listing;
         })
-        .filter((l: PetListing) => l.active);
+        .filter((l: PetListing) => {
+          return l.active;
+        });
+
       return mapped;
     },
   });

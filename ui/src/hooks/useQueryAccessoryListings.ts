@@ -5,10 +5,7 @@ import { MODULE_NAME, PACKAGE_ID } from "@/constants/contract";
 import { getSuiObjectFields } from "@/lib/utils";
 import type { AccessoryListing, RawAccessoryListingFields } from "@/types/Marketplace";
 
-export const queryKeyAccessoryListings = [
-  "marketplace",
-  "accessory-listings",
-] as const;
+export const queryKeyAccessoryListings = ["marketplace", "accessory-listings"] as const;
 
 export function useQueryAccessoryListings() {
   const suiClient = useSuiClient();
@@ -16,23 +13,14 @@ export function useQueryAccessoryListings() {
   return useQuery({
     queryKey: queryKeyAccessoryListings,
     queryFn: async (): Promise<AccessoryListing[]> => {
-      const extractOptionFirst = <T,>(opt: unknown): T | null => {
-        if (!opt || typeof opt !== "object") return null;
-        const o = opt as { fields?: Record<string, unknown> };
-        if (!o.fields || typeof o.fields !== "object") return null;
-        const maybeVec = (o.fields as { vec?: unknown }).vec;
-        if (Array.isArray(maybeVec)) return (maybeVec[0] as T) ?? null;
-        const maybeSome = (o.fields as { some?: unknown }).some;
-        if (maybeSome) return maybeSome as T;
-        const maybeValue = (o.fields as { value?: unknown }).value;
-        if (maybeValue) return maybeValue as T;
-        return null;
-      };
       // Derive via recent events (robust across indexers)
+      const eventType = `${PACKAGE_ID}::${MODULE_NAME}::AccessoryListed`;
+
       const events = await suiClient.queryEvents({
-        query: { MoveEventType: `${PACKAGE_ID}::${MODULE_NAME}::AccessoryListed` },
+        query: { MoveEventType: eventType },
         limit: 50,
       });
+
       type IdMaybe = string | { id?: string } | { bytes?: string };
       type ListedEventParsed = { listing_id?: IdMaybe; listingId?: IdMaybe };
       const extractId = (v: IdMaybe | undefined): string | null => {
@@ -48,30 +36,43 @@ export function useQueryAccessoryListings() {
             .map((e): string | null => {
               const pj = (e as { parsedJson?: unknown }).parsedJson;
               if (pj && typeof pj === "object") {
-                const idMaybe = (pj as ListedEventParsed).listing_id ?? (pj as ListedEventParsed).listingId;
+                const idMaybe =
+                  (pj as ListedEventParsed).listing_id ?? (pj as ListedEventParsed).listingId;
                 return extractId(idMaybe);
               }
               return null;
             })
-            .filter((v: string | null): v is string => v !== null),
-        ),
+            .filter((v: string | null): v is string => v !== null)
+        )
       );
-      if (listingIds.length === 0) return [];
-      const objs = await suiClient.multiGetObjects({ ids: listingIds, options: { showContent: true } });
+
+      if (listingIds.length === 0) {
+        return [];
+      }
+
+      const objs = await suiClient.multiGetObjects({
+        ids: listingIds,
+        options: { showContent: true },
+      });
+
       const mapped: AccessoryListing[] = objs
         .map((obj) => getSuiObjectFields<RawAccessoryListingFields>(obj))
         .filter((f): f is RawAccessoryListingFields => !!f)
         .map<AccessoryListing>((f) => {
-          type InnerAcc = { fields: { id: { id: string }; name: string; image_url: string } };
-          const inner = extractOptionFirst<InnerAcc>(f.accessory);
-          const active = !!inner;
-          const accessory = inner
-            ? {
-                id: inner.fields.id.id,
-                name: inner.fields.name,
-                image_url: inner.fields.image_url,
-              }
-            : undefined;
+          // The accessory field is either null/undefined (sold/cancelled) or a direct Accessory object
+          const accessoryData = f.accessory;
+          let active = false;
+          let accessory = undefined;
+
+          if (accessoryData && accessoryData.fields) {
+            active = true;
+            accessory = {
+              id: accessoryData.fields.id.id,
+              name: accessoryData.fields.name,
+              image_url: accessoryData.fields.image_url,
+            };
+          }
+
           return {
             id: f.id.id,
             seller: f.seller,
@@ -81,6 +82,7 @@ export function useQueryAccessoryListings() {
           };
         })
         .filter((l: AccessoryListing) => l.active);
+
       return mapped;
     },
   });

@@ -331,7 +331,7 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                     )
                   }
                   disabled={isAnyActionPending || isEvolving}
-                  className="w-full relative overflow-hidden"
+                  className="w-full relative overflow-hidden text-white"
                   variant="secondary"
                 >
                   {isEvolving && (

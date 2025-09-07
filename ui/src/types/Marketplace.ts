@@ -4,7 +4,7 @@ export type RawPetListingFields = {
   id: { id: string };
   seller: string;
   price: string | number;
-  pet: RawOptionVec<{
+  pet?: {
     fields: {
       id: { id: string };
       name: string;
@@ -16,20 +16,20 @@ export type RawPetListingFields = {
       };
       personality: number;
     };
-  }>;
+  };
 };
 
 export type RawAccessoryListingFields = {
   id: { id: string };
   seller: string;
   price: string | number;
-  accessory: RawOptionVec<{
+  accessory?: {
     fields: {
       id: { id: string };
       name: string;
       image_url: string;
     };
-  }>;
+  };
 };
 
 export type PetListing = {
