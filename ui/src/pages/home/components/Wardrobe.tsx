@@ -1,6 +1,7 @@
 import { GlassesIcon, Loader2Icon, WarehouseIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CardFooter } from "@/components/ui/card";
 
 import { UseMutateEquipAccessory } from "@/hooks/useMutateEquipAccessory";
@@ -21,44 +22,28 @@ type WardrobeManagerProps = {
   isAnyActionPending: boolean;
 };
 
-export function WardrobeManager({
-  pet,
-  isAnyActionPending,
-}: WardrobeManagerProps) {
+export function WardrobeManager({ pet, isAnyActionPending }: WardrobeManagerProps) {
   // --- Hooks for Actions ---
   const { mutate: mutateMint, isPending: isMinting } = useMutateMintAccessory();
-  const { mutate: mutateMintHat, isPending: isMintingHat } =
-    useMutateMintHat();
-  const { mutate: mutateMintToy, isPending: isMintingToy } =
-    useMutateMintToy();
-  const { mutate: mutateEquip, isPending: isEquipping } =
-    UseMutateEquipAccessory();
-  const { mutate: mutateUnequip, isPending: isUnequipping } =
-    UseMutateUnequipAccessory();
-  const { mutate: mutateMintEquip, isPending: isMintEquipping } =
-    useMutateMintAndEquip();
+  const { mutate: mutateMintHat, isPending: isMintingHat } = useMutateMintHat();
+  const { mutate: mutateMintToy, isPending: isMintingToy } = useMutateMintToy();
+  const { mutate: mutateEquip, isPending: isEquipping } = UseMutateEquipAccessory();
+  const { mutate: mutateUnequip, isPending: isUnequipping } = UseMutateUnequipAccessory();
+  const { mutate: mutateMintEquip, isPending: isMintEquipping } = useMutateMintAndEquip();
 
   // --- Wardrobe Data Fetching Hooks ---
-  const { data: ownedAccessories, isLoading: isLoadingAccessories } =
-    useQueryOwnedAccessories();
-  const { data: equippedAccessory, isLoading: isLoadingEquipped } =
-    useQueryEquippedAccessory({ petId: pet.id });
+  const { data: ownedAccessories, isLoading: isLoadingAccessories } = useQueryOwnedAccessories();
+  const { data: equippedAccessory, isLoading: isLoadingEquipped } = useQueryEquippedAccessory({
+    petId: pet.id,
+  });
 
   // A specific loading state for wardrobe actions to disable buttons.
   const isProcessingWardrobe =
-    isMinting ||
-    isMintingHat ||
-    isMintingToy ||
-    isEquipping ||
-    isUnequipping ||
-    isMintEquipping;
+    isMinting || isMintingHat || isMintingToy || isEquipping || isUnequipping || isMintEquipping;
   const isLoading = isLoadingAccessories || isLoadingEquipped;
 
   const renderContent = () => {
-    if (isLoading)
-      return (
-        <p className="text-sm text-muted-foreground">Loading wardrobe...</p>
-      );
+    if (isLoading) return <p className="text-sm text-muted-foreground">Loading wardrobe...</p>;
 
     return (
       <div className="w-full space-y-3">
@@ -83,10 +68,7 @@ export function WardrobeManager({
                 variant="destructive"
                 size="sm"
               >
-                {isUnequipping && (
-                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                )}{" "}
-                Unequip
+                {isUnequipping && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />} Unequip
               </Button>
             </motion.div>
           </div>
@@ -96,10 +78,7 @@ export function WardrobeManager({
         {ownedAccessories && ownedAccessories.length > 0 && (
           <div className="space-y-2">
             {ownedAccessories.map((acc) => (
-              <div
-                key={acc.id.id}
-                className="flex items-center justify-between w-full"
-              >
+              <div key={acc.id.id} className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
                   <img
                     src={acc.image_url}
@@ -121,10 +100,7 @@ export function WardrobeManager({
                     disabled={isAnyActionPending || isProcessingWardrobe}
                     size="sm"
                   >
-                    {isEquipping && (
-                      <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                    )}{" "}
-                    Equip
+                    {isEquipping && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />} Equip
                   </Button>
                 </motion.div>
               </div>
@@ -135,103 +111,117 @@ export function WardrobeManager({
         {/* Mint actions — always visible */}
         <div className="grid grid-cols-3 gap-2 w-full">
           <motion.div {...scaleTap}>
-          <Button
-            onClick={() => mutateMint()}
-            disabled={isAnyActionPending || isProcessingWardrobe}
-            className="cursor-pointer"
-            size="sm"
-          >
-            {isMinting ? (
-              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <GlassesIcon className="mr-2 h-4 w-4" />
-            )}{" "}
-            Glasses
-          </Button>
-          </motion.div>
-          <motion.div {...scaleTap}>
-          <Button
-            onClick={() => mutateMintHat()}
-            disabled={isAnyActionPending || isProcessingWardrobe}
-            className="cursor-pointer"
-            size="sm"
-          >
-            {isMintingHat ? (
-              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <WarehouseIcon className="mr-2 h-4 w-4" />
-            )}{" "}
-            Hat
-          </Button>
-          </motion.div>
-          <motion.div {...scaleTap}>
-          <Button
-            onClick={() => mutateMintToy()}
-            disabled={isAnyActionPending || isProcessingWardrobe}
-            className="cursor-pointer"
-            size="sm"
-          >
-            {isMintingToy ? (
-              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <WarehouseIcon className="mr-2 h-4 w-4" />
-            )}{" "}
-            Toy
-          </Button>
-          </motion.div>
-        </div>
-
-        {/* Mint + Equip combos (PTB) */}
-        <div className="grid grid-cols-3 gap-2 w-full">
-          <motion.div {...scaleTap}>
             <Button
-              onClick={() => mutateMintEquip({ petId: pet.id, kind: "glasses" })}
+              onClick={() => mutateMint()}
               disabled={isAnyActionPending || isProcessingWardrobe}
-              className="cursor-pointer"
+              className="cursor-pointer w-full"
               size="sm"
-              variant="secondary"
             >
-              {isMintEquipping ? (
+              {isMinting ? (
                 <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <GlassesIcon className="mr-2 h-4 w-4" />
               )}{" "}
-              Glasses Now
+              Glasses
             </Button>
           </motion.div>
           <motion.div {...scaleTap}>
             <Button
-              onClick={() => mutateMintEquip({ petId: pet.id, kind: "hat" })}
+              onClick={() => mutateMintHat()}
               disabled={isAnyActionPending || isProcessingWardrobe}
-              className="cursor-pointer"
+              className="cursor-pointer w-full"
               size="sm"
-              variant="secondary"
             >
-              {isMintEquipping ? (
+              {isMintingHat ? (
                 <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <WarehouseIcon className="mr-2 h-4 w-4" />
               )}{" "}
-              Hat Now
+              Hat
             </Button>
           </motion.div>
           <motion.div {...scaleTap}>
             <Button
-              onClick={() => mutateMintEquip({ petId: pet.id, kind: "toy" })}
+              onClick={() => mutateMintToy()}
               disabled={isAnyActionPending || isProcessingWardrobe}
-              className="cursor-pointer"
+              className="cursor-pointer w-full"
               size="sm"
-              variant="secondary"
             >
-              {isMintEquipping ? (
+              {isMintingToy ? (
                 <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <WarehouseIcon className="mr-2 h-4 w-4" />
               )}{" "}
-              Toy Now
+              Toy
             </Button>
           </motion.div>
         </div>
+
+        {/* Mint + Equip combos (PTB) — compact icon-only buttons */}
+        <TooltipProvider>
+          <div className="grid grid-cols-3 gap-2 w-full">
+            <motion.div {...scaleTap}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => mutateMintEquip({ petId: pet.id, kind: "glasses" })}
+                    disabled={isAnyActionPending || isProcessingWardrobe}
+                    className="cursor-pointer w-full"
+                    size="sm"
+                    variant="secondary"
+                  >
+                    {isMintEquipping ? (
+                      <Loader2Icon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <GlassesIcon className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Mint + Equip Glasses</TooltipContent>
+              </Tooltip>
+            </motion.div>
+            <motion.div {...scaleTap}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => mutateMintEquip({ petId: pet.id, kind: "hat" })}
+                    disabled={isAnyActionPending || isProcessingWardrobe}
+                    className="cursor-pointer w-full"
+                    size="sm"
+                    variant="secondary"
+                  >
+                    {isMintEquipping ? (
+                      <Loader2Icon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <WarehouseIcon className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Mint + Equip Hat</TooltipContent>
+              </Tooltip>
+            </motion.div>
+            <motion.div {...scaleTap}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => mutateMintEquip({ petId: pet.id, kind: "toy" })}
+                    disabled={isAnyActionPending || isProcessingWardrobe}
+                    className="cursor-pointer w-full"
+                    size="sm"
+                    variant="secondary"
+                  >
+                    {isMintEquipping ? (
+                      <Loader2Icon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <WarehouseIcon className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Mint + Equip Toy</TooltipContent>
+              </Tooltip>
+            </motion.div>
+          </div>
+        </TooltipProvider>
       </div>
     );
   };

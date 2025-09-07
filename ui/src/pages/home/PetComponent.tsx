@@ -265,11 +265,14 @@ export default function PetComponent({ pet }: PetDashboardProps) {
             {!pet.isSleeping ? (
               <ActionButton
                 onClick={() =>
-                  mutateComboCare({ petId: pet.id, withLevelCheck: true })
+                  mutateComboCare({
+                    petId: pet.id,
+                    withLevelCheck: canLevelUp,
+                  })
                 }
                 disabled={!canComboCare || isAnyActionPending}
                 isPending={isComboCaring}
-                label="Feed + Play + Check"
+                label="Combo"
                 icon={<ZapIcon />}
               />
             ) : (
@@ -279,7 +282,7 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 }
                 disabled={isAnyActionPending}
                 isPending={isMorning}
-                label="Wake + Feed + Play"
+                label="Wake Combo"
                 icon={<ZapIcon />}
               />
             )}
