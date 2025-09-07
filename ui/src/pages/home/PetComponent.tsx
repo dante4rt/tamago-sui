@@ -88,6 +88,18 @@ export default function PetComponent({ pet }: PetDashboardProps) {
   const { mutate: mutateTryEvolve, isPending: isEvolving } =
     useMutateTryEvolve();
 
+  // Visual effects state
+  const [burstKey, setBurstKey] = useState(0);
+  const [burstType, setBurstType] = useState<"none" | "level" | "evolve">(
+    "none",
+  );
+  const triggerBurst = (type: "level" | "evolve") => {
+    setBurstType(type);
+    setBurstKey((k) => k + 1);
+    // auto clear after animation
+    setTimeout(() => setBurstType("none"), 1400);
+  };
+
   useEffect(() => {
     setDisplayStats(pet.stats);
   }, [pet.stats]);
@@ -169,6 +181,13 @@ export default function PetComponent({ pet }: PetDashboardProps) {
       pet.game_data.level * Number(gameBalance.exp_per_level);
   const canComboCare = !pet.isSleeping && canFeed && canPlay;
 
+  const energyPerSecond = gameBalance
+    ? 1000 / Number(gameBalance.sleep_energy_gain_ms)
+    : 0;
+  const hungerLossPerSecond = gameBalance
+    ? 1000 / Number(gameBalance.sleep_hunger_loss_ms)
+    : 0;
+
   return (
     <TooltipProvider>
       <Card className="w-full max-w-md border border-border shadow-sm overflow-hidden">
@@ -211,6 +230,10 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
                 whileHover={{ scale: 1.03 }}
               />
+              {/* Confetti burst */}
+              {burstType !== "none" && (
+                <ConfettiBurst key={`burst-${burstKey}`} type={burstType} />
+              )}
             </motion.div>
           </div>
 
@@ -261,15 +284,35 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 value={displayStats.hunger}
               />
             </motion.div>
+            {/* Live sleep ticker */}
+            {pet.isSleeping && (
+              <div className="flex justify-center">
+                <span className="text-xs px-2 py-1 rounded-full bg-muted border">
+                  +{energyPerSecond.toFixed(1)} energy/s · -{hungerLossPerSecond.toFixed(1)} hunger/s
+                </span>
+              </div>
+            )}
           </motion.div>
 
           <div className="pt-2">
             <motion.div {...scaleTap}>
               <Button
-                onClick={() => mutateLevelUp({ petId: pet.id })}
+                onClick={() =>
+                  mutateLevelUp(
+                    { petId: pet.id },
+                    { onSuccess: () => triggerBurst("level") },
+                  )
+                }
                 disabled={!canLevelUp || isAnyActionPending}
-                className="w-full"
+                className="w-full relative overflow-hidden"
               >
+                {isLevelingUp && (
+                  <motion.div
+                    className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
+                    animate={{ x: ["-100%", "100%"] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                  />
+                )}
                 {isLevelingUp ? (
                   <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
@@ -281,11 +324,23 @@ export default function PetComponent({ pet }: PetDashboardProps) {
             <div className="mt-2">
               <motion.div {...scaleTap}>
                 <Button
-                  onClick={() => mutateTryEvolve({ petId: pet.id })}
+                  onClick={() =>
+                    mutateTryEvolve(
+                      { petId: pet.id },
+                      { onSuccess: () => triggerBurst("evolve") },
+                    )
+                  }
                   disabled={isAnyActionPending || isEvolving}
-                  className="w-full"
+                  className="w-full relative overflow-hidden"
                   variant="secondary"
                 >
+                  {isEvolving && (
+                    <motion.div
+                      className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
+                      animate={{ x: ["-100%", "100%"] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
                   {isEvolving ? (
                     <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
@@ -380,9 +435,16 @@ export default function PetComponent({ pet }: PetDashboardProps) {
               <Button
                 onClick={() => mutateWakeUpPet({ petId: pet.id })}
                 disabled={isWakingUp}
-                className="w-full"
+                className="w-full relative overflow-hidden"
                 variant="secondary"
               >
+                {isWakingUp && (
+                  <motion.div
+                    className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
+                    animate={{ x: ["-100%", "100%"] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                  />
+                )}
                 {isWakingUp ? (
                   <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
@@ -395,9 +457,16 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 <Button
                   onClick={() => mutateLetPetSleep({ petId: pet.id })}
                   disabled={isAnyActionPending}
-                  className="w-full"
+                  className="w-full relative overflow-hidden"
                   variant="secondary"
                 >
+                  {isSleeping && (
+                    <motion.div
+                      className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
+                      animate={{ x: ["-100%", "100%"] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
                   {isSleeping ? (
                     <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
@@ -408,9 +477,16 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 <Button
                   onClick={() => mutateRest({ petId: pet.id })}
                   disabled={!canRest || isAnyActionPending}
-                  className="w-full"
+                  className="w-full relative overflow-hidden"
                   variant="secondary"
                 >
+                  {isResting && (
+                    <motion.div
+                      className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
+                      animate={{ x: ["-100%", "100%"] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
                   {isResting ? (
                     <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
@@ -442,4 +518,38 @@ function personalityLabel(value: number) {
     default:
       return "Balanced";
   }
+}
+
+// Tiny confetti burst using framer-motion
+function ConfettiBurst({ type }: { type: "level" | "evolve" }) {
+  const colors =
+    type === "level"
+      ? ["var(--primary)", "#9ae6b4", "#34d399"]
+      : ["var(--accent)", "#fbb6ce", "#f59e0b"];
+  const count = 14;
+  const items = Array.from({ length: count });
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      {items.map((_, i) => {
+        const angle = (360 / count) * i + (i % 2 === 0 ? 8 : -8);
+        const rad = (angle * Math.PI) / 180;
+        const dist = 56 + (i % 3) * 10;
+        const x = Math.cos(rad) * dist;
+        const y = Math.sin(rad) * dist;
+        const c = colors[i % colors.length];
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0.9, x: 0, y: 0, scale: 0.6, rotate: 0 }}
+            animate={{ opacity: 0, x, y, scale: 1.1, rotate: angle * 2 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            style={{ color: c }}
+            className="absolute text-sm select-none"
+          >
+            ✦
+          </motion.div>
+        );
+      })}
+    </div>
+  );
 }
