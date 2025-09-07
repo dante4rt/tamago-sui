@@ -45,6 +45,8 @@ import { useQueryGameBalance } from "@/hooks/useQueryGameBalance";
 import { useMutateExercise } from "@/hooks/useMutateExercise";
 import { useMutateStudy } from "@/hooks/useMutateStudy";
 import { useMutateRest } from "@/hooks/useMutateRest";
+import { useMutateComboCare } from "@/hooks/useMutateComboCare";
+import { useMutateMorningRoutine } from "@/hooks/useMutateMorningRoutine";
 
 import type { PetStruct } from "@/types/Pet";
 import { motion } from "framer-motion";
@@ -71,6 +73,10 @@ export default function PetComponent({ pet }: PetDashboardProps) {
     useMutateExercise();
   const { mutate: mutateStudy, isPending: isStudying } = useMutateStudy();
   const { mutate: mutateRest, isPending: isResting } = useMutateRest();
+  const { mutate: mutateComboCare, isPending: isComboCaring } =
+    useMutateComboCare();
+  const { mutate: mutateMorning, isPending: isMorning } =
+    useMutateMorningRoutine();
 
   const { mutate: mutateLetPetSleep, isPending: isSleeping } =
     useMutateLetPetSleep();
@@ -129,7 +135,9 @@ export default function PetComponent({ pet }: PetDashboardProps) {
     isLevelingUp ||
     isExercising ||
     isStudying ||
-    isResting;
+    isResting ||
+    isComboCaring ||
+    isMorning;
 
   // These `can...` variables mirror the smart contract's rules (`assert!`) on the client-side.
   const canFeed =
@@ -156,6 +164,7 @@ export default function PetComponent({ pet }: PetDashboardProps) {
     !pet.isSleeping &&
     pet.game_data.experience >=
       pet.game_data.level * Number(gameBalance.exp_per_level);
+  const canComboCare = !pet.isSleeping && canFeed && canPlay;
 
   return (
     <TooltipProvider>
@@ -252,6 +261,28 @@ export default function PetComponent({ pet }: PetDashboardProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
+            {/* Combo Actions */}
+            {!pet.isSleeping ? (
+              <ActionButton
+                onClick={() =>
+                  mutateComboCare({ petId: pet.id, withLevelCheck: true })
+                }
+                disabled={!canComboCare || isAnyActionPending}
+                isPending={isComboCaring}
+                label="Feed + Play + Check"
+                icon={<ZapIcon />}
+              />
+            ) : (
+              <ActionButton
+                onClick={() =>
+                  mutateMorning({ petId: pet.id, includePlay: true })
+                }
+                disabled={isAnyActionPending}
+                isPending={isMorning}
+                label="Wake + Feed + Play"
+                icon={<ZapIcon />}
+              />
+            )}
             <ActionButton
               onClick={() => mutateFeedPet({ petId: pet.id })}
               disabled={!canFeed || isAnyActionPending}

@@ -8,6 +8,7 @@ import { useMutateMintAccessory } from "@/hooks/useMutateMintAccessory";
 import { useMutateMintHat } from "@/hooks/useMutateMintHat";
 import { useMutateMintToy } from "@/hooks/useMutateMintToy";
 import { UseMutateUnequipAccessory } from "@/hooks/useMutateUnequipAccessory";
+import { useMutateMintAndEquip } from "@/hooks/useMutateMintAndEquip";
 import { useQueryEquippedAccessory } from "@/hooks/useQueryEquippedAccessory";
 import { useQueryOwnedAccessories } from "@/hooks/useQueryOwnedAccessories";
 
@@ -34,6 +35,8 @@ export function WardrobeManager({
     UseMutateEquipAccessory();
   const { mutate: mutateUnequip, isPending: isUnequipping } =
     UseMutateUnequipAccessory();
+  const { mutate: mutateMintEquip, isPending: isMintEquipping } =
+    useMutateMintAndEquip();
 
   // --- Wardrobe Data Fetching Hooks ---
   const { data: ownedAccessories, isLoading: isLoadingAccessories } =
@@ -43,7 +46,12 @@ export function WardrobeManager({
 
   // A specific loading state for wardrobe actions to disable buttons.
   const isProcessingWardrobe =
-    isMinting || isMintingHat || isMintingToy || isEquipping || isUnequipping;
+    isMinting ||
+    isMintingHat ||
+    isMintingToy ||
+    isEquipping ||
+    isUnequipping ||
+    isMintEquipping;
   const isLoading = isLoadingAccessories || isLoadingEquipped;
 
   const renderContent = () => {
@@ -170,6 +178,58 @@ export function WardrobeManager({
             )}{" "}
             Toy
           </Button>
+          </motion.div>
+        </div>
+
+        {/* Mint + Equip combos (PTB) */}
+        <div className="grid grid-cols-3 gap-2 w-full">
+          <motion.div {...scaleTap}>
+            <Button
+              onClick={() => mutateMintEquip({ petId: pet.id, kind: "glasses" })}
+              disabled={isAnyActionPending || isProcessingWardrobe}
+              className="cursor-pointer"
+              size="sm"
+              variant="secondary"
+            >
+              {isMintEquipping ? (
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <GlassesIcon className="mr-2 h-4 w-4" />
+              )}{" "}
+              Glasses Now
+            </Button>
+          </motion.div>
+          <motion.div {...scaleTap}>
+            <Button
+              onClick={() => mutateMintEquip({ petId: pet.id, kind: "hat" })}
+              disabled={isAnyActionPending || isProcessingWardrobe}
+              className="cursor-pointer"
+              size="sm"
+              variant="secondary"
+            >
+              {isMintEquipping ? (
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <WarehouseIcon className="mr-2 h-4 w-4" />
+              )}{" "}
+              Hat Now
+            </Button>
+          </motion.div>
+          <motion.div {...scaleTap}>
+            <Button
+              onClick={() => mutateMintEquip({ petId: pet.id, kind: "toy" })}
+              disabled={isAnyActionPending || isProcessingWardrobe}
+              className="cursor-pointer"
+              size="sm"
+              variant="secondary"
+            >
+              {isMintEquipping ? (
+                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <WarehouseIcon className="mr-2 h-4 w-4" />
+              )}{" "}
+              Toy Now
+            </Button>
           </motion.div>
         </div>
       </div>
