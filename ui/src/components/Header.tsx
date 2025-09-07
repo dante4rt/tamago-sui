@@ -33,14 +33,14 @@ export default function Header() {
               size="lg"
               aria-label="Toggle theme"
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="!px-4 gap-2 rounded-[12px] border border-[#A0B6C3]/60 dark:border-[#A0B6C3]/40 bg-background hover:bg-background/80 text-[#2A3B47] font-mono font-bold leading-none"
+              className="!px-4 gap-2 rounded-[12px] border border-border bg-background hover:bg-background/80 text-foreground font-mono font-bold leading-none"
               style={{ height: "50px" }}
               title={isDark ? "Switch to light" : "Switch to dark"}
             >
               {isDark ? (
-                <SunIcon className="size-4 text-[#A0B6C3]" />
+                <SunIcon className="size-4 text-muted-foreground" />
               ) : (
-                <MoonIcon className="size-4 text-[#A0B6C3]" />
+                <MoonIcon className="size-4 text-muted-foreground" />
               )}
             </Button>
           )}
