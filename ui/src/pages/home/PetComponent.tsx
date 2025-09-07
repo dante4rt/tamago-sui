@@ -47,10 +47,11 @@ import { useMutateStudy } from "@/hooks/useMutateStudy";
 import { useMutateRest } from "@/hooks/useMutateRest";
 import { useMutateComboCare } from "@/hooks/useMutateComboCare";
 import { useMutateMorningRoutine } from "@/hooks/useMutateMorningRoutine";
+import { useMutateTryEvolve } from "@/hooks/useMutateTryEvolve";
 
 import type { PetStruct } from "@/types/Pet";
 import { motion } from "framer-motion";
-import { scaleTap } from "@/components/motion/variants";
+import { scaleTap, fadeInUp, listStagger, itemFade } from "@/components/motion/variants";
 
 type PetDashboardProps = {
   pet: PetStruct;
@@ -84,6 +85,8 @@ export default function PetComponent({ pet }: PetDashboardProps) {
     useMutateWakeUpPet();
   const { mutate: mutateLevelUp, isPending: isLevelingUp } =
     useMutateCheckAndLevelUp();
+  const { mutate: mutateTryEvolve, isPending: isEvolving } =
+    useMutateTryEvolve();
 
   useEffect(() => {
     setDisplayStats(pet.stats);
@@ -168,34 +171,51 @@ export default function PetComponent({ pet }: PetDashboardProps) {
 
   return (
     <TooltipProvider>
-      <Card className="w-full max-w-sm shadow-hard border-2 border-primary">
-        <CardHeader className="text-center">
-          <CardTitle className="text-4xl">{pet.name}</CardTitle>
-          <CardDescription className="text-lg">
-            Level {pet.game_data.level}
-          </CardDescription>
+      <Card className="w-full max-w-md border border-border shadow-sm overflow-hidden">
+        <CardHeader className="text-center relative">
+          <div className="absolute inset-0 -z-10">
+            <motion.div
+              className="absolute left-1/2 top-3 -translate-x-1/2 size-40 rounded-full blur-2xl"
+              style={{ background: "radial-gradient(60% 60% at 50% 50%, var(--accent) 0%, transparent 70%)" }}
+              animate={{ opacity: [0.3, 0.55, 0.3] }}
+              transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute left-1/2 top-10 -translate-x-1/2 size-52 rounded-full blur-2xl"
+              style={{ background: "radial-gradient(60% 60% at 50% 50%, var(--primary) 0%, transparent 70%)" }}
+              animate={{ opacity: [0.25, 0.45, 0.25] }}
+              transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+          <CardTitle className="text-3xl tracking-tight">{pet.name}</CardTitle>
+          <CardDescription className="text-base">Level {pet.game_data.level}</CardDescription>
+          {pet.isSleeping && (
+            <span className="absolute right-3 top-3 text-xs px-2 py-0.5 rounded-full bg-muted border">Sleeping</span>
+          )}
         </CardHeader>
 
         <CardContent className="space-y-4">
           {/* Pet Image */}
           <div className="flex justify-center">
             <motion.div
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ repeat: Infinity, repeatDelay: 3.5, duration: 2.2 }}
-              className="rounded-full"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="rounded-full relative"
             >
               <motion.img
                 src={pet.image_url}
                 alt={pet.name}
-                className="w-36 h-36 rounded-full border-4 border-primary/20 object-cover"
-                whileHover={{ rotate: [0, -2, 2, 0] }}
-                transition={{ duration: 0.6 }}
+                className="w-44 h-44 rounded-full border-4 border-primary/20 object-cover bg-secondary"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                whileHover={{ scale: 1.03 }}
               />
             </motion.div>
           </div>
 
           {/* Game & Stats Data */}
-          <div className="space-y-3">
+          <motion.div variants={fadeInUp} initial="hidden" animate="show" className="space-y-3">
             <div className="flex justify-between items-center text-lg">
               <Tooltip>
                 <TooltipTrigger className="flex items-center gap-2">
@@ -224,7 +244,7 @@ export default function PetComponent({ pet }: PetDashboardProps) {
             </div>
 
             {/* Stat Bars */}
-            <div className="space-y-2">
+            <motion.div variants={listStagger} initial="hidden" animate="show" className="space-y-2">
               <StatDisplay
                 icon={<BatteryIcon className="text-green-500" />}
                 label="Energy"
@@ -240,15 +260,15 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 label="Hunger"
                 value={displayStats.hunger}
               />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           <div className="pt-2">
             <motion.div {...scaleTap}>
               <Button
                 onClick={() => mutateLevelUp({ petId: pet.id })}
                 disabled={!canLevelUp || isAnyActionPending}
-                className="w-full bg-green-600 hover:bg-green-700"
+                className="w-full"
               >
                 {isLevelingUp ? (
                   <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
@@ -258,11 +278,29 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 Level Up!
               </Button>
             </motion.div>
+            <div className="mt-2">
+              <motion.div {...scaleTap}>
+                <Button
+                  onClick={() => mutateTryEvolve({ petId: pet.id })}
+                  disabled={isAnyActionPending || isEvolving}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  {isEvolving ? (
+                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ChevronUpIcon className="mr-2 h-4 w-4" />
+                  )}
+                  Evolve (if ready)
+                </Button>
+              </motion.div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <motion.div variants={listStagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-3">
             {/* Combo Actions */}
             {!pet.isSleeping ? (
+              <motion.div variants={itemFade}>
               <ActionButton
                 onClick={() =>
                   mutateComboCare({
@@ -275,7 +313,9 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 label="Combo"
                 icon={<ZapIcon />}
               />
+              </motion.div>
             ) : (
+              <motion.div variants={itemFade}>
               <ActionButton
                 onClick={() =>
                   mutateMorning({ petId: pet.id, includePlay: true })
@@ -285,7 +325,9 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 label="Wake Combo"
                 icon={<ZapIcon />}
               />
+              </motion.div>
             )}
+            <motion.div variants={itemFade}>
             <ActionButton
               onClick={() => mutateFeedPet({ petId: pet.id })}
               disabled={!canFeed || isAnyActionPending}
@@ -293,6 +335,8 @@ export default function PetComponent({ pet }: PetDashboardProps) {
               label="Feed"
               icon={<DrumstickIcon />}
             />
+            </motion.div>
+            <motion.div variants={itemFade}>
             <ActionButton
               onClick={() => mutatePlayWithPet({ petId: pet.id })}
               disabled={!canPlay || isAnyActionPending}
@@ -300,6 +344,8 @@ export default function PetComponent({ pet }: PetDashboardProps) {
               label="Play"
               icon={<PlayIcon />}
             />
+            </motion.div>
+            <motion.div variants={itemFade}>
             <ActionButton
               onClick={() => mutateExercise({ petId: pet.id })}
               disabled={!canExercise || isAnyActionPending}
@@ -307,6 +353,8 @@ export default function PetComponent({ pet }: PetDashboardProps) {
               label="Exercise"
               icon={<DumbbellIcon />}
             />
+            </motion.div>
+            <motion.div variants={itemFade}>
             <ActionButton
               onClick={() => mutateStudy({ petId: pet.id })}
               disabled={!canStudy || isAnyActionPending}
@@ -314,7 +362,9 @@ export default function PetComponent({ pet }: PetDashboardProps) {
               label="Study"
               icon={<BookOpenIcon />}
             />
+            </motion.div>
             <div className="col-span-2">
+              <motion.div variants={itemFade}>
               <ActionButton
                 onClick={() => mutateWorkForCoins({ petId: pet.id })}
                 disabled={!canWork || isAnyActionPending}
@@ -322,14 +372,16 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 label="Work"
                 icon={<BriefcaseIcon />}
               />
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
           <div className="col-span-2 pt-2">
             {pet.isSleeping ? (
               <Button
                 onClick={() => mutateWakeUpPet({ petId: pet.id })}
                 disabled={isWakingUp}
-                className="w-full bg-yellow-500 hover:bg-yellow-600"
+                className="w-full"
+                variant="secondary"
               >
                 {isWakingUp ? (
                   <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
@@ -343,7 +395,8 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 <Button
                   onClick={() => mutateLetPetSleep({ petId: pet.id })}
                   disabled={isAnyActionPending}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full"
+                  variant="secondary"
                 >
                   {isSleeping ? (
                     <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
@@ -355,7 +408,8 @@ export default function PetComponent({ pet }: PetDashboardProps) {
                 <Button
                   onClick={() => mutateRest({ petId: pet.id })}
                   disabled={!canRest || isAnyActionPending}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  className="w-full"
+                  variant="secondary"
                 >
                   {isResting ? (
                     <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />

@@ -1,7 +1,10 @@
 module 0x0::tamagosui;
 
 use std::string::{Self, String};
-use sui::{clock::Clock, display, dynamic_field, event, package};
+use std::option::{Self as option, Option};
+use sui::{clock::Clock, display, dynamic_field, event, package, transfer};
+use sui::coin::{Self as coin, Coin};
+use sui::sui::SUI;
 
 // === Errors ===
 const E_NOT_ENOUGH_COINS: u64 = 101;
@@ -14,22 +17,29 @@ const E_NOT_ENOUGH_EXP: u64 = 107;
 const E_PET_IS_ASLEEP: u64 = 108;
 const E_PET_IS_ALREADY_ASLEEP: u64 = 109;
 const E_NO_STAT_ROOM: u64 = 110; // For rest when energy already max
+const E_BREED_COOLDOWN: u64 = 120;
+const E_LISTING_EMPTY: u64 = 130;
+const E_NOT_SELLER: u64 = 131;
+const E_INCORRECT_PAYMENT: u64 = 132;
 
 // === Constants ===
 const PET_LEVEL_1_IMAGE_URL: vector<u8> = b"https://raw.githubusercontent.com/xfajarr/stacklend/refs/heads/main/photo_2023-04-30_12-46-11.jpg";
-const PET_LEVEL_1_IMAGE_WITH_GLASSES_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreibizappmcjaq5a5metl27yc46co4kxewigq6zu22vovwvn5qfsbiu";
+const PET_LEVEL_1_IMAGE_WITH_GLASSES_URL: vector<u8> = b"https://aqua-robust-coyote-537.mypinata.cloud/ipfs/bafybeibuzcb7fvks7p53ww457bfxpmwqo6q3zkdc7jbc6cfim4taia2a3u"; 
 const PET_LEVEL_2_IMAGE_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreia5tgsowzfu6mzjfcxagfpbkghfuho6y5ybetxh3wabwrc5ajmlpq";
 const PET_LEVEL_2_IMAGE_WITH_GLASSES_URL:vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreif5bkpnqyybq3aqgafqm72x4wfjwcuxk33vvykx44weqzuilop424";
 const PET_LEVEL_3_IMAGE_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreidnqerfwxuxkrdsztgflmg5jwuespdkrazl6qmk7ykfgmrfzvinoy";
 const PET_LEVEL_3_IMAGE_WITH_GLASSES_URL:vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreigs6r3rdupoji7pqmpwe76z7wysguzdlq43t3wqmzi2654ux5n6uu";
-const PET_SLEEP_IMAGE_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreihwofl5stihtzjixfhrtznd7zqkclfhmlshgsg7cbszzjqqpvf7ae";
-const ACCESSORY_GLASSES_IMAGE_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreigyivmq45od3jkryryi3w6t5j65hcnfh5kgwpi2ex7llf2i6se7de";
-const ACCESSORY_HAT_IMAGE_URL: vector<u8> = b"https://aqua-robust-coyote-537.mypinata.cloud/ipfs/bafkreibgiquk2ah5zzwofg436hxkwfnn5aee56ojwybyjw2pbps5o2qijm";
-const ACCESSORY_TOY_IMAGE_URL: vector<u8> = b"https://aqua-robust-coyote-537.mypinata.cloud/ipfs/bafkreielc5mcftz2ccjypmwez3erbl7l5zainvltlnwmqffzsqdpzwpd6q";
+const PET_SLEEP_IMAGE_URL: vector<u8> = b"https://aqua-robust-coyote-537.mypinata.cloud/ipfs/bafybeiel3rexdznm4fnmycms6w4gknkmfsgti3siysfmxbf2u64fkjbyja";
+const ACCESSORY_GLASSES_IMAGE_URL: vector<u8> = b"https://tan-kind-lizard-741.mypinata.cloud/ipfs/bafkreigyivmq45od3jkryryi3w6t5j65hcnfh5kgwpi2ex7llf2i6se7de"; 
+const ACCESSORY_HAT_IMAGE_URL: vector<u8> = b"https://aqua-robust-coyote-537.mypinata.cloud/ipfs/bafybeif3stu35odeedi34kgj5nvpovysd4auvxi66uhn6au7zrmkgsrylu"; 
+const ACCESSORY_TOY_IMAGE_URL: vector<u8> = b"https://aqua-robust-coyote-537.mypinata.cloud/ipfs/bafybeia3hp4skuh6smhoctf42cnami6vnz7n5z4kaunqhczcumk23agiyy"; 
 
 const EQUIPPED_ITEM_KEY: vector<u8> = b"equipped_item";
 const EQUIPPED_ITEM_KIND_KEY: vector<u8> = b"equipped_item_kind"; // 1=glasses,2=hat,3=toy
 const SLEEP_STARTED_AT_KEY: vector<u8> = b"sleep_started_at";
+const EVOLUTION_STAGE_KEY: vector<u8> = b"evolution_stage"; // u8 stage 1..3
+const BREED_COOLDOWN_UNTIL_KEY: vector<u8> = b"breed_cooldown_until"; // u64 (ms)
+const BREED_COOLDOWN_MS: u64 = 60_000; // 60 seconds cooldown
 
 // === Game Balance ===
 public struct GameBalance has copy, drop {
@@ -172,6 +182,38 @@ public struct PetAction has copy, drop {
     energy: u8,
     happiness: u8,
     hunger: u8
+}
+
+public struct PetEvolved has copy, drop {
+    pet_id: ID,
+    new_stage: u8,
+    level: u8,
+}
+
+public struct PetBred has copy, drop {
+    child_id: ID,
+    parent_a: ID,
+    parent_b: ID,
+}
+
+public struct PetListed has copy, drop { listing_id: ID, price: u64 }
+public struct PetSold has copy, drop { listing_id: ID, price: u64 }
+public struct AccessoryListed has copy, drop { listing_id: ID, price: u64 }
+public struct AccessorySold has copy, drop { listing_id: ID, price: u64 }
+
+// === Simple Marketplace Listings (shared) ===
+public struct PetListing has key, store {
+    id: UID,
+    pet: Option<Pet>,
+    seller: address,
+    price: u64,
+}
+
+public struct AccessoryListing has key, store {
+    id: UID,
+    accessory: Option<PetAccessory>,
+    seller: address,
+    price: u64,
 }
 
 fun init(witness: TAMAGOSUI, ctx: &mut TxContext) {
@@ -485,6 +527,87 @@ public entry fun check_and_level_up(pet: &mut Pet) {
     emit_action(pet, b"leveled_up")
 }
 
+/// Try evolving the pet based on level thresholds.
+/// Stages: 1 (base), 2 (level >= 2), 3 (level >= 3)
+public entry fun try_evolve(pet: &mut Pet) {
+    let key = string::utf8(EVOLUTION_STAGE_KEY);
+    let current: u8 = if (dynamic_field::exists_<String>(&pet.id, copy key)) {
+        *dynamic_field::borrow<String, u8>(&pet.id, copy key)
+    } else { 1u8 };
+
+    let desired = if (pet.game_data.level >= 3) { 3u8 } else if (pet.game_data.level >= 2) { 2u8 } else { 1u8 };
+    if (desired > current) {
+        if (dynamic_field::exists_<String>(&pet.id, copy key)) {
+            let _old: u8 = dynamic_field::remove<String, u8>(&mut pet.id, copy key);
+        };
+        dynamic_field::add(&mut pet.id, key, desired);
+        update_pet_image(pet);
+        event::emit(PetEvolved { pet_id: object::id(pet), new_stage: desired, level: pet.game_data.level });
+    };
+}
+
+public fun get_evolution_stage(pet: &Pet): u8 {
+    let key = string::utf8(EVOLUTION_STAGE_KEY);
+    if (dynamic_field::exists_<String>(&pet.id, key)) {
+        *dynamic_field::borrow<String, u8>(&pet.id, key)
+    } else { 1u8 }
+}
+
+/// Breed two pets to create a child. Applies cooldown to parents.
+public entry fun breed_pets(parent_a: &mut Pet, parent_b: &mut Pet, name: String, clock: &Clock, ctx: &mut TxContext) {
+    assert!(!is_sleeping(parent_a) && !is_sleeping(parent_b), E_PET_IS_ASLEEP);
+
+    let now = clock.timestamp_ms();
+    assert!(can_breed(parent_a, now) && can_breed(parent_b, now), E_BREED_COOLDOWN);
+
+    // Child base stats: average, capped 100
+    let (ea, ha, hu) = (parent_a.stats.energy, parent_a.stats.happiness, parent_a.stats.hunger);
+    let (eb, hb, hb2) = (parent_b.stats.energy, parent_b.stats.happiness, parent_b.stats.hunger);
+    let child_stats = PetStats { 
+        energy: (((ea as u64) + (eb as u64)) / 2) as u8, 
+        happiness: (((ha as u64) + (hb as u64)) / 2) as u8, 
+        hunger: (((hu as u64) + (hb2 as u64)) / 2) as u8 
+    };
+
+    let child_game = PetGameData { coins: 0, experience: 0, level: 1 };
+
+    // Inherit personality pseudo-randomly from parents and time
+    let seed = now + (parent_a.game_data.experience) + (parent_b.game_data.experience);
+    let personality = choose_personality(seed);
+
+    let child = Pet {
+        id: object::new(ctx),
+        name,
+        image_url: string::utf8(PET_LEVEL_1_IMAGE_URL),
+        adopted_at: now,
+        stats: child_stats,
+        game_data: child_game,
+        personality,
+    };
+
+    // Set breed cooldown on parents
+    set_breed_cooldown(parent_a, now + BREED_COOLDOWN_MS);
+    set_breed_cooldown(parent_b, now + BREED_COOLDOWN_MS);
+
+    event::emit(PetBred { child_id: object::id(&child), parent_a: object::id(parent_a), parent_b: object::id(parent_b) });
+    transfer::public_transfer(child, ctx.sender());
+}
+
+public fun can_breed(pet: &Pet, now_ms: u64): bool {
+    let key = string::utf8(BREED_COOLDOWN_UNTIL_KEY);
+    if (!dynamic_field::exists_<String>(&pet.id, key)) return true;
+    let until_ref = dynamic_field::borrow<String, u64>(&pet.id, key);
+    now_ms >= *until_ref
+}
+
+fun set_breed_cooldown(pet: &mut Pet, until_ms: u64) {
+    let key = string::utf8(BREED_COOLDOWN_UNTIL_KEY);
+    if (dynamic_field::exists_<String>(&pet.id, copy key)) {
+        let _old: u64 = dynamic_field::remove<String, u64>(&mut pet.id, copy key);
+    };
+    dynamic_field::add(&mut pet.id, key, until_ms);
+}
+
 public entry fun mint_accessory(ctx: &mut TxContext) {
     let accessory = PetAccessory {
         id: object::new(ctx),
@@ -536,6 +659,58 @@ public fun mint_toy_for_ptb(ctx: &mut TxContext): PetAccessory {
         id: object::new(ctx),
         name: string::utf8(b"squeaky toy"),
         image_url: string::utf8(ACCESSORY_TOY_IMAGE_URL)
+    }
+}
+
+// === Simple Marketplace: List / Buy / Cancel ===
+public entry fun list_pet(pet: Pet, price: u64, ctx: &mut TxContext) {
+    let listing = PetListing { id: object::new(ctx), pet: option::some(pet), seller: ctx.sender(), price };
+    let listing_id = object::id(&listing);
+    transfer::public_share_object(listing);
+    event::emit(PetListed { listing_id, price });
+}
+
+public entry fun buy_listed_pet(listing: &mut PetListing, payment: Coin<SUI>, ctx: &mut TxContext) {
+    assert!(option::is_some(&listing.pet), E_LISTING_EMPTY);
+    assert!(coin::value(&payment) == listing.price, E_INCORRECT_PAYMENT);
+
+    let seller = listing.seller;
+    let pet = option::extract(&mut listing.pet);
+    transfer::public_transfer(pet, ctx.sender());
+    transfer::public_transfer(payment, seller);
+    event::emit(PetSold { listing_id: object::id(listing), price: listing.price });
+}
+
+public entry fun cancel_pet_listing(listing: &mut PetListing, ctx: &mut TxContext) {
+    assert!(ctx.sender() == listing.seller, E_NOT_SELLER);
+    if (option::is_some(&listing.pet)) {
+        let pet = option::extract(&mut listing.pet);
+        transfer::public_transfer(pet, ctx.sender());
+    }
+}
+
+public entry fun list_accessory(accessory: PetAccessory, price: u64, ctx: &mut TxContext) {
+    let listing = AccessoryListing { id: object::new(ctx), accessory: option::some(accessory), seller: ctx.sender(), price };
+    let listing_id = object::id(&listing);
+    transfer::public_share_object(listing);
+    event::emit(AccessoryListed { listing_id, price });
+}
+
+public entry fun buy_listed_accessory(listing: &mut AccessoryListing, payment: Coin<SUI>, ctx: &mut TxContext) {
+    assert!(option::is_some(&listing.accessory), E_LISTING_EMPTY);
+    assert!(coin::value(&payment) == listing.price, E_INCORRECT_PAYMENT);
+    let seller = listing.seller;
+    let accessory = option::extract(&mut listing.accessory);
+    transfer::public_transfer(accessory, ctx.sender());
+    transfer::public_transfer(payment, seller);
+    event::emit(AccessorySold { listing_id: object::id(listing), price: listing.price });
+}
+
+public entry fun cancel_accessory_listing(listing: &mut AccessoryListing, ctx: &mut TxContext) {
+    assert!(ctx.sender() == listing.seller, E_NOT_SELLER);
+    if (option::is_some(&listing.accessory)) {
+        let accessory = option::extract(&mut listing.accessory);
+        transfer::public_transfer(accessory, ctx.sender());
     }
 }
 

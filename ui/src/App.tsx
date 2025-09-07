@@ -2,12 +2,17 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import Providers from "./providers";
 import HomePage from "./pages/home";
+import MarketplacePage from "./pages/marketplace";
 import { Toaster } from "./components/ui/sonner";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <HomePage />,
+  },
+  {
+    path: "/marketplace",
+    element: <MarketplacePage />,
   },
 ]);
 

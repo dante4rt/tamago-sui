@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { SunIcon, MoonIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Header() {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -22,10 +23,29 @@ export default function Header() {
     return () => window.removeEventListener("resize", measure);
   }, [mounted, resolvedTheme]);
 
+  const location = useLocation();
   return (
     <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <h1 className="text-2xl font-bold tracking-tighter">TAMAGOSUI</h1>
+        <div className="flex items-center gap-4">
+          <Link to="/">
+            <h1 className="text-2xl font-bold tracking-tighter">TAMAGOSUI</h1>
+          </Link>
+          <nav className="hidden sm:flex items-center gap-2 text-sm">
+            <Link
+              to="/"
+              className={`px-2 py-1 rounded ${location.pathname === "/" ? "bg-muted" : "hover:bg-muted"}`}
+            >
+              Home
+            </Link>
+            <Link
+              to="/marketplace"
+              className={`px-2 py-1 rounded ${location.pathname === "/marketplace" ? "bg-muted" : "hover:bg-muted"}`}
+            >
+              Marketplace
+            </Link>
+          </nav>
+        </div>
         <div className="flex items-center gap-2">
           {mounted && (
             <Button
