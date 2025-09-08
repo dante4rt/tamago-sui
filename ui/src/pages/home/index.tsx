@@ -10,7 +10,6 @@ import {
   WifiOffIcon,
   LoaderIcon,
   SparklesIcon,
-  LinkIcon,
   SearchIcon,
   SproutIcon,
   GamepadIcon,
@@ -315,8 +314,7 @@ export default function HomePage() {
             >
               <WifiOffIcon className="h-16 w-16 mx-auto text-primary" />
             </motion.div>
-            <h2 className="text-2xl font-bold mb-4 text-foreground flex items-center gap-2">
-              <LinkIcon className="h-6 w-6" />
+            <h2 className="text-2xl font-bold mb-4 text-foreground flex items-center justify-center gap-2">
               Connect Your Wallet
             </h2>
             <p className="text-muted-foreground">
