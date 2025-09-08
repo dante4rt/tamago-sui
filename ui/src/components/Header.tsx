@@ -10,7 +10,6 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // Stabilize theme to prevent flicker
   const isDark = mounted ? (resolvedTheme ?? theme) === "dark" : false;
   const connectRef = useRef<HTMLDivElement>(null);
 

@@ -9,7 +9,6 @@ import { motion } from "framer-motion";
 const INTIAAL_PET_IMAGE_URL =
   "https://raw.githubusercontent.com/xfajarr/stacklend/refs/heads/main/photo_2023-04-30_12-46-11.jpg";
 
-// Enhanced animation variants following Family's delight principles
 const cardVariants = {
   hidden: {
     opacity: 0,

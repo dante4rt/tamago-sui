@@ -28,7 +28,6 @@ import { useMutateCancelAccessoryListing } from "@/hooks/useMutateCancelAccessor
 
 import { useCurrentAccount } from "@mysten/dapp-kit";
 
-// Enhanced animation variants following Family's principles
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: {
@@ -103,7 +102,6 @@ export default function MarketplacePage() {
   const [accPrices, setAccPrices] = useState<Record<string, number>>({});
   const [showListingForm, setShowListingForm] = useState(false);
 
-  // Set page title
   useEffect(() => {
     document.title = "Tamagosui – Marketplace";
   }, []);

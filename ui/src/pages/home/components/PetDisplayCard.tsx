@@ -19,7 +19,6 @@ type PetDisplayCardProps = {
   pet: PetStruct;
 };
 
-// Helper function to get personality label and description
 function getPersonalityInfo(personality: number) {
   switch (personality) {
     case 1:
@@ -33,7 +32,6 @@ function getPersonalityInfo(personality: number) {
   }
 }
 
-// Helper function to calculate age since adoption
 function calculateAge(adoptedAt: number): string {
   const now = Date.now();
   const ageMs = now - adoptedAt;
@@ -49,7 +47,6 @@ function calculateAge(adoptedAt: number): string {
   }
 }
 
-// Helper function to get evolution stage
 function getEvolutionStage(level: number): { stage: number; name: string; nextAt?: number } {
   if (level >= 15) {
     return { stage: 3, name: "Mature" };
@@ -90,7 +87,6 @@ export function PetDisplayCard({ pet }: PetDisplayCardProps) {
   const evolutionInfo = getEvolutionStage(pet.game_data.level);
 
   useEffect(() => {
-    // Pet image breathing animation
     if (petImageRef.current && !pet.isSleeping) {
       animate(petImageRef.current, {
         scale: [1, 1.05, 1],

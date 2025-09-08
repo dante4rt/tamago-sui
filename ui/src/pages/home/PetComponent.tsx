@@ -47,12 +47,10 @@ type PetDashboardProps = {
 };
 
 export default function PetComponent({ pet }: PetDashboardProps) {
-  // --- Fetch Game Balance ---
   const { data: gameBalance, isLoading: isLoadingGameBalance } = useQueryGameBalance();
 
   const [displayStats, setDisplayStats] = useState(pet.stats);
 
-  // --- Hooks for Main Pet Actions ---
   const { mutate: mutateFeedPet, isPending: isFeeding } = useMutateFeedPet();
   const { mutate: mutatePlayWithPet, isPending: isPlaying } = useMutatePlayWithPet();
   const { mutate: mutateWorkForCoins, isPending: isWorking } = useMutateWorkForCoins();
@@ -67,13 +65,12 @@ export default function PetComponent({ pet }: PetDashboardProps) {
   const { mutate: mutateLevelUp, isPending: isLevelingUp } = useMutateCheckAndLevelUp();
   const { mutate: mutateTryEvolve, isPending: isEvolving } = useMutateTryEvolve();
 
-  // Visual effects state
   const [burstKey, setBurstKey] = useState(0);
   const [burstType, setBurstType] = useState<"none" | "level" | "evolve">("none");
   const triggerBurst = (type: "level" | "evolve") => {
     setBurstType(type);
     setBurstKey((k) => k + 1);
-    // auto clear after animation
+
     setTimeout(() => setBurstType("none"), 1400);
   };
 
@@ -82,9 +79,7 @@ export default function PetComponent({ pet }: PetDashboardProps) {
   }, [pet.stats]);
 
   useEffect(() => {
-    // This effect only runs when the pet is sleeping
     if (pet.isSleeping && !isWakingUp && gameBalance) {
-      // Start a timer that updates the stats every second
       const intervalId = setInterval(() => {
         setDisplayStats((prev) => {
           const energyPerSecond = 1000 / Number(gameBalance.sleep_energy_gain_ms);
@@ -97,12 +92,11 @@ export default function PetComponent({ pet }: PetDashboardProps) {
             happiness: Math.max(0, prev.happiness - happinessLossPerSecond),
           };
         });
-      }, 1000); // Runs every second
+      }, 1000);
 
-      // IMPORTANT: Clean up the timer when the pet wakes up or the component unmounts
       return () => clearInterval(intervalId);
     }
-  }, [pet.isSleeping, isWakingUp, gameBalance]); // Rerun this effect if sleep status or balance changes
+  }, [pet.isSleeping, isWakingUp, gameBalance]);
 
   if (isLoadingGameBalance || !gameBalance)
     return (
@@ -111,8 +105,6 @@ export default function PetComponent({ pet }: PetDashboardProps) {
       </div>
     );
 
-  // --- Client-side UI Logic & Button Disabling ---
-  // `isAnyActionPending` prevents the user from sending multiple transactions at once.
   const isAnyActionPending =
     isFeeding ||
     isPlaying ||
@@ -125,7 +117,6 @@ export default function PetComponent({ pet }: PetDashboardProps) {
     isComboCaring ||
     isMorning;
 
-  // These `can...` variables mirror the smart contract's rules (`assert!`) on the client-side.
   const canFeed =
     !pet.isSleeping &&
     pet.stats.hunger < gameBalance.max_stat &&
@@ -432,7 +423,6 @@ function personalityLabel(value: number) {
   }
 }
 
-// Tiny confetti burst using framer-motion
 function ConfettiBurst({ type }: { type: "level" | "evolve" }) {
   const colors =
     type === "level"

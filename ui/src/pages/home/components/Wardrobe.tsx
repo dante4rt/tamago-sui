@@ -23,7 +23,6 @@ type WardrobeManagerProps = {
 };
 
 export function WardrobeManager({ pet, isAnyActionPending }: WardrobeManagerProps) {
-  // --- Hooks for Actions ---
   const { mutate: mutateMint, isPending: isMinting } = useMutateMintAccessory();
   const { mutate: mutateMintHat, isPending: isMintingHat } = useMutateMintHat();
   const { mutate: mutateMintToy, isPending: isMintingToy } = useMutateMintToy();
@@ -31,13 +30,11 @@ export function WardrobeManager({ pet, isAnyActionPending }: WardrobeManagerProp
   const { mutate: mutateUnequip, isPending: isUnequipping } = UseMutateUnequipAccessory();
   const { mutate: mutateMintEquip, isPending: isMintEquipping } = useMutateMintAndEquip();
 
-  // --- Wardrobe Data Fetching Hooks ---
   const { data: ownedAccessories, isLoading: isLoadingAccessories } = useQueryOwnedAccessories();
   const { data: equippedAccessory, isLoading: isLoadingEquipped } = useQueryEquippedAccessory({
     petId: pet.id,
   });
 
-  // A specific loading state for wardrobe actions to disable buttons.
   const isProcessingWardrobe =
     isMinting || isMintingHat || isMintingToy || isEquipping || isUnequipping || isMintEquipping;
   const isLoading = isLoadingAccessories || isLoadingEquipped;

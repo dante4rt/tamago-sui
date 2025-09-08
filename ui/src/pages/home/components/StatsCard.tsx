@@ -28,7 +28,6 @@ export function StatsCard({ pet }: StatsCardProps) {
   const experienceProgress = (pet.game_data.experience / experienceNeeded) * 100;
 
   useEffect(() => {
-    // Level badge animation
     if (levelRef.current) {
       animate(levelRef.current, {
         scale: [1, 1.1, 1],

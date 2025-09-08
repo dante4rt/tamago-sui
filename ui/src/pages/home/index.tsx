@@ -18,7 +18,6 @@ import {
 import { useEffect, useRef } from "react";
 import { animate } from "animejs";
 
-// Import all the pet action hooks
 import { useMutateCheckAndLevelUp } from "@/hooks/useMutateCheckLevel";
 import { useMutateFeedPet } from "@/hooks/useMutateFeedPet";
 import { useMutateLetPetSleep } from "@/hooks/useMutateLetPetSleep";
@@ -52,7 +51,6 @@ export default function HomePage() {
   const particlesRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Pet action hooks
   const { mutate: mutateFeedPet, isPending: isFeeding } = useMutateFeedPet();
   const { mutate: mutatePlayWithPet, isPending: isPlaying } = useMutatePlayWithPet();
   const { mutate: mutateWorkForCoins, isPending: isWorking } = useMutateWorkForCoins();
@@ -78,12 +76,10 @@ export default function HomePage() {
     isLevelingUp ||
     isEvolving;
 
-  // Set page title
   useEffect(() => {
     document.title = "Tamagosui – Home";
   }, []);
 
-  // Helper functions to check if actions are allowed
   const canFeed = ownedPet && ownedPet.stats.hunger < (gameBalance?.max_stat || 100);
   const canPlay = ownedPet && ownedPet.stats.happiness < (gameBalance?.max_stat || 100);
   const canWork = ownedPet && ownedPet.stats.energy >= (gameBalance?.work_energy_loss || 10);
@@ -98,7 +94,6 @@ export default function HomePage() {
     ownedPet.stats.happiness < (gameBalance?.max_stat || 100) &&
     ownedPet.stats.energy < (gameBalance?.max_stat || 100);
 
-  // Action handlers
   const handleFeed = () => mutateFeedPet({ petId: ownedPet!.id });
   const handlePlay = () => mutatePlayWithPet({ petId: ownedPet!.id });
   const handleWork = () => mutateWorkForCoins({ petId: ownedPet!.id });
@@ -111,23 +106,18 @@ export default function HomePage() {
   const handleLevelUp = () => mutateLevelUp({ petId: ownedPet!.id });
   const handleEvolve = () => mutateTryEvolve({ petId: ownedPet!.id });
 
-  // Enhanced particle system with anime.js - with proper timing
   useEffect(() => {
-    // Only start animations after data is loaded and initial render is complete
     if (!currentAccount || isOwnedPetLoading) return;
 
     const createFloatingParticles = () => {
       if (!particlesRef.current) return;
 
-      // Clear existing particles
       particlesRef.current.innerHTML = "";
 
-      // Create 30 beautiful floating particles
       for (let i = 0; i < 30; i++) {
         const particle = document.createElement("div");
         particle.className = "absolute rounded-full pointer-events-none blur-[0.5px]";
 
-        // Random particle properties
         const size = Math.random() * 8 + 4;
         const colors = ["bg-tea-green/50", "bg-apricot/50", "bg-pistachio/50", "bg-dutch-white/50"];
         const color = colors[Math.floor(Math.random() * colors.length)];
@@ -140,7 +130,6 @@ export default function HomePage() {
 
         particlesRef.current.appendChild(particle);
 
-        // Anime.js smooth floating animation with initial delay
         animate(particle, {
           translateY: [
             { value: () => -20 - Math.random() * 40, duration: 3000 + Math.random() * 2000 },
@@ -161,12 +150,11 @@ export default function HomePage() {
           loop: true,
           direction: "alternate",
           easing: "easeInOutSine",
-          delay: 800 + Math.random() * 2000, // Add substantial initial delay
+          delay: 800 + Math.random() * 2000,
         });
       }
     };
 
-    // Create magical sparkle bursts
     const createSparkleEffect = () => {
       const container = containerRef.current;
       if (!container) return;
@@ -181,7 +169,6 @@ export default function HomePage() {
 
       container.appendChild(sparkle);
 
-      // Beautiful sparkle animation with anime.js
       animate(sparkle, {
         scale: [
           { value: 0, duration: 0 },
@@ -204,12 +191,10 @@ export default function HomePage() {
       });
     };
 
-    // Initialize particle system with delay
     setTimeout(() => {
       createFloatingParticles();
     }, 500);
 
-    // Create sparkles periodically with initial delay
     const sparkleInterval = setInterval(createSparkleEffect, 2500);
 
     return () => {
